@@ -2,13 +2,6 @@ targetScope = 'resourceGroup'
 
 param tags object = {}
 
-@description('The name of the environment. This must be Development or Production.')
-@allowed([
-  'Development'
-  'Production'
-])
-param environmentName string
-
 @minLength(5)
 @maxLength(64)
 param frontDoorName string

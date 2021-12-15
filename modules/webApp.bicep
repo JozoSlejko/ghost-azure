@@ -24,14 +24,8 @@ param ghostContainerImage string
 @description('Storage account name to store Ghost content files')
 param storageAccountName string
 
-@secure()
-param storageAccountAccessKey string
-
 @description('Storage account name to store Staging Ghost content files')
 param slotStorageAccountName string
-
-@secure()
-param slotStorageAccountAccessKey string
 
 @description('File share name on the storage account to store Ghost content files')
 param fileShareName string
@@ -43,6 +37,17 @@ param slotName string
 
 var containerImageReference = 'DOCKER|${ghostContainerImage}'
 
+var storageAccountAccessKey = listKeys(existingStorageAccount.id, existingStorageAccount.apiVersion).keys[0].value
+
+var slotStorageAccountAccessKey = slotEnabled ? listKeys(existingSlotStorageAccount.id, existingSlotStorageAccount.apiVersion).keys[0].value : ''
+
+resource existingStorageAccount 'Microsoft.Storage/storageAccounts@2021-06-01' existing = {
+  name: storageAccountName
+}
+
+resource existingSlotStorageAccount 'Microsoft.Storage/storageAccounts@2021-06-01' existing = if (slotEnabled) {
+  name: slotStorageAccountName
+}
 
 resource webApp 'Microsoft.Web/sites@2021-01-15' = {
   name: webAppName

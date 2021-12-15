@@ -130,9 +130,7 @@ module webApp './modules/webApp.bicep' = {
     appServicePlanId: appServicePlan.outputs.id
     ghostContainerImage: ghostContainerName
     storageAccountName: storageAccount.outputs.name
-    storageAccountAccessKey: storageAccount.outputs.accessKey
     slotStorageAccountName: slotStorageAccount.outputs.name
-    slotStorageAccountAccessKey: slotStorageAccount.outputs.accessKey
     fileShareName: ghostContentFileShareName
     containerMountPath: ghostContentFilesMountPath
     location: location
@@ -198,7 +196,6 @@ module frontDoor 'modules/frontDoor.bicep' = {
   name: 'FrontDoorDeploy'
   params: {
     tags: tags
-    environmentName: environmentName
     frontDoorName: frontDoorName
     wafPolicyName: wafPolicyName
     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
