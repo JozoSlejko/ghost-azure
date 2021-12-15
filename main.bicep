@@ -1,7 +1,5 @@
 targetScope = 'resourceGroup'
 
-param baseTime string = utcNow('yyyy-MM-dd')
-
 @description('The name of the environment. This must be Development or Production.')
 @allowed([
   'Development'
@@ -13,7 +11,7 @@ param environmentName string
 param applicationNamePrefix string = 'ghost'
 
 @description('Enable the additional Web App slot.')
-param slotEnabled bool
+param slotEnabled bool = false
 
 @description('Location to deploy the resources')
 param location string = resourceGroup().location
@@ -27,6 +25,8 @@ param ghostContainerName string = 'ghost:4.29.0-alpine'
 
 @description('Container registry where the image is hosted')
 param containerRegistryUrl string = 'https://index.docker.io/v1'
+
+param baseTime string = utcNow('yyyy-MM-dd')
 
 var environmentCode = environmentName == 'Production' ? 'prd' : 'dev'
 
@@ -242,7 +242,4 @@ module frontDoor 'modules/frontDoor.bicep' = {
 output webAppName string = webApp.outputs.name
 output webAppPrincipalId string = webApp.outputs.principalId
 output webAppHostName string = webApp.outputs.hostName
-
-var endpointHostName = frontDoor.outputs.frontendEndpointHostName
-
-output endpointHostName string = endpointHostName
+output endpointHostName string = frontDoor.outputs.frontendEndpointHostName
