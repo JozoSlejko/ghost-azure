@@ -8,7 +8,7 @@ This is an Azure Web app deployed as a container. It uses [the official Ghost Do
 
 ## High level design
 
-![EnableActivityLog-Compliance](docs/hld.png)
+![High level design](docs/HLD.png)
 
 Bicep template deploys and configures the following Azure resources to a single region:
 
@@ -41,4 +41,4 @@ Ghost application doesn't support clustering of ghost web instances.
 
 ### Disaster recovery
 
-In regards to disaster recovery, the solution design supports deployment of 
+In regards to disaster recovery, the solution design supports deployment of.
