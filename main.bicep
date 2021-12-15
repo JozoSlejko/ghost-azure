@@ -15,20 +15,8 @@ param applicationNamePrefix string = 'ghost'
 @description('Enable the additional Web App slot.')
 param slotEnabled bool
 
-@description('App Service Plan pricing tier')
-param appServicePlanSku string = 'S1'
-
-@description('Log Analytics workspace pricing tier')
-param logAnalyticsWorkspaceSku string = 'PerGB2018'
-
-@description('Storage account pricing tier')
-param storageAccountSku string = 'Standard_LRS'
-
 @description('Location to deploy the resources')
 param location string = resourceGroup().location
-
-@description('MySQL server SKU')
-param mySQLServerSku string = 'B_Gen5_1'
 
 @description('MySQL server password')
 @secure()
@@ -73,12 +61,60 @@ var tags = {
   'last-provisioned': baseTime
 }
 
+@description('Define the SKUs for each component based on the environment type.')
+var environmentConfigurationMap = {
+  Production: {
+    appServicePlan: {
+      sku: {
+        name: 'S1'
+      }
+    }
+    storageAccount: {
+      sku: {
+        name: 'Standard_GRS'
+      }
+    }
+    mySqlServer: {
+      sku: {
+        name: 'GP_Gen5_4'
+      }
+    }
+    logAnalyticsWorkspace: {
+      sku: {
+        name: 'PerGB2018'
+      }
+    }
+  }
+  Development: {
+    appServicePlan: {
+      sku: {
+        name: 'S1'
+      }
+    }
+    storageAccount: {
+      sku: {
+        name: 'Standard_LRS'
+      }
+    }
+    mySqlServer: {
+      sku: {
+        name: 'B_Gen5_1'
+      }
+    }
+    logAnalyticsWorkspace: {
+      sku: {
+        name: 'PerGB2018'
+      }
+    }
+  }
+}
+
 module logAnalyticsWorkspace './modules/logAnalyticsWorkspace.bicep' = {
   name: 'logAnalyticsWorkspaceDeploy'
   params: {
     tags: tags
     logAnalyticsWorkspaceName: logAnalyticsWorkspaceName
-    logAnalyticsWorkspaceSku: logAnalyticsWorkspaceSku
+    logAnalyticsWorkspaceSku: environmentConfigurationMap[environmentName].logAnalyticsWorkspace.sku.name
     location: location
   }
 }
@@ -88,7 +124,7 @@ module storageAccount 'modules/storageAccount.bicep' = {
   params: {
     tags: tags
     storageAccountName: storageAccountName
-    storageAccountSku: storageAccountSku
+    storageAccountSku: environmentConfigurationMap[environmentName].storageAccount.sku.name
     fileShareFolderName: ghostContentFileShareName
     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
     location: location
@@ -100,7 +136,7 @@ module slotStorageAccount 'modules/storageAccount.bicep' = if (slotEnabled) {
   params: {
     tags: tags
     storageAccountName: slotStorageAccountName
-    storageAccountSku: storageAccountSku
+    storageAccountSku: environmentConfigurationMap[environmentName].storageAccount.sku.name
     fileShareFolderName: ghostContentFileShareName
     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
     location: location
@@ -163,7 +199,7 @@ module appServicePlan './modules/appServicePlan.bicep' = {
   params: {
     tags: tags
     appServicePlanName: appServicePlanName
-    appServicePlanSku: appServicePlanSku
+    appServicePlanSku: environmentConfigurationMap[environmentName].appServicePlan.sku.name
     location: location
     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
   }
@@ -188,7 +224,7 @@ module mySQLServer 'modules/mySQLServer.bicep' = {
     location: location
     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
     mySQLServerName: mySQLServerName
-    mySQLServerSku: mySQLServerSku
+    mySQLServerSku: environmentConfigurationMap[environmentName].mySqlServer.sku.name
   }
 }
 

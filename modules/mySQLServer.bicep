@@ -6,10 +6,7 @@ param tags object = {}
 @maxLength(63)
 param mySQLServerName string
 
-@allowed([
-  'B_Gen5_1'
-  'B_Gen5_2'
-])
+@description('Database SKU')
 param mySQLServerSku string
 
 @description('Database administrator login name')
@@ -34,7 +31,6 @@ resource mySQLServer 'Microsoft.DBforMySQL/servers@2017-12-01' = {
   tags: tags
   sku: {
     name: mySQLServerSku
-    tier: 'Basic'
   }
   properties: {
     createMode: 'Default'
