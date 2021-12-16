@@ -20,7 +20,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Run Bicep linter
-      run: az bicep build --file deploy/main.bicep
+      run: az bicep build --file ./main.bicep
 
   # Validate the dev/test template
   validate: 
