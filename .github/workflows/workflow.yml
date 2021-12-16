@@ -10,7 +10,7 @@ env:
   AZURE_DEV_RESOURCEGROUP_NAME: j-ghost-dev-rg-01
   AZURE_PROD_RESOURCEGROUP_NAME: j-ghost-prod-rg-01
   APP_NAME_PREFIX: ghost
-  SLOT_ENABLED: $true
+  SLOT_ENABLED: true
   GHOST_CONTAINER: ghost:4.29.0-alpine
 
 jobs:

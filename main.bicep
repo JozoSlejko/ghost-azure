@@ -166,7 +166,7 @@ module webApp './modules/webApp.bicep' = {
     appServicePlanId: appServicePlan.outputs.id
     ghostContainerImage: ghostContainerName
     storageAccountName: storageAccount.outputs.name
-    slotStorageAccountName: slotStorageAccount.outputs.name
+    slotStorageAccountName: slotEnabled ? slotStorageAccount.outputs.name : ''
     fileShareName: ghostContentFileShareName
     containerMountPath: ghostContentFilesMountPath
     location: location

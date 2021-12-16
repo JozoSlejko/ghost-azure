@@ -25,7 +25,7 @@ param ghostContainerImage string
 param storageAccountName string
 
 @description('Storage account name to store Staging Ghost content files')
-param slotStorageAccountName string
+param slotStorageAccountName string = ''
 
 @description('File share name on the storage account to store Ghost content files')
 param fileShareName string
