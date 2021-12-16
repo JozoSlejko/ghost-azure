@@ -20,20 +20,23 @@ Bicep template deploys and configures the following Azure resources to a single 
 * Azure Storage Account and File Share for persisting Ghost content
 * Azure Front Door endpoint with a WAF policy for securing the traffic to the Web app
 
-## Deployment
+## Solution Requirements
 
-For the application layer, no downtime deployment can be performed by using the App Service deployment slot swap feature.
+### No downtime deployment
+
+For the application layer, rolling deployment with no downtime can be performed by using the App Service deployment slot swap feature.
 Further, database and content layers have the option to be replicated to pre-production (staging) for any testing before swapping the slots.
 
-## Scalability
+### Scalability
 
-Ghost supports front end tier scaling, which is done by Azure Front Door which is an automatically scalable service providing content caching for client connections.
+In terms of scale out, Ghost supports front end tier scaling, done by Azure Front Door which can auto scale and provide content caching.
+Ghost application and data tiers do not support scaling out.
 
-## Monitoring
+### Monitoring
 
 All resources have their diagnostic settings configured to stream resource logs and metrics to the Log Analytics workspace.
 
-## Business continuity
+### Business continuity
 
 All services deployed in a single region are implicitly highly available and supported by Azure platform and are guaranteed by an SLA.
 
@@ -42,3 +45,21 @@ Ghost application doesn't support clustering of ghost web instances.
 ### Disaster recovery
 
 In regards to disaster recovery, the solution design supports deployment of.
+
+## Deployment
+
+The solution is templated using Bicep.
+
+The solution is deployed using Github workflow, but can also be manually deployed using Azure CLI or Powershell.
+
+### Prerequisites
+
+Following are the prerequisites that need to be met for the Github workflow:
+
+* Resource groups - Resource groups for environments
+
+* Service principals - Azure AD service principal, one for each environment
+
+* Access - Service principal Contributor access to the respective environment resource group
+
+* Actions secrets - secrets in the repository for authentication and authorizing Github workflow with Azure resource groups

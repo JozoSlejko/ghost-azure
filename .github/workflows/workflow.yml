@@ -1,0 +1,102 @@
+name: deploy-ghost-azure
+concurrency: ghost-azure
+
+on: 
+  push:
+    branches: 
+      - main
+
+env:
+  AZURE_DEV_RESOURCEGROUP_NAME: j-ghost-dev-rg-01
+  AZURE_PROD_RESOURCEGROUP_NAME: j-ghost-prod-rg-01
+  APP_NAME_PREFIX: ghost
+  SLOT_ENABLED: $true
+  GHOST_CONTAINER: ghost:4.29.0-alpine
+
+jobs:
+  # Lint the Bicep file.
+  lint: 
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run Bicep linter
+      run: az bicep build --file deploy/main.bicep
+
+  # Validate the dev/test template
+  validate: 
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: azure/login@v1
+      name: Sign in to Azure
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS_DEV }}
+    - uses: azure/arm-deploy@v1
+      name: Run preflight validation
+      with:
+        deploymentName: ${{ github.run_number }}
+        resourceGroupName: ${{ env.AZURE_DEV_RESOURCEGROUP_NAME }}
+        template: ./main.bicep
+        parameters: environmentName=Development applicationNamePrefix=${{ env.APP_NAME_PREFIX }} slotEnabled=${{ env.SLOT_ENABLED }} databasePassword=${{ secrets.DATABASEPASSWORD }} ghostContainerName=${{ env.GHOST_CONTAINER }}
+        deploymentMode: Validate
+
+  # Run the what-if of the dev/test template
+  preview:
+    runs-on: ubuntu-latest
+    needs: [lint, validate]
+    steps:
+    - uses: actions/checkout@v2
+    - uses: azure/login@v1
+      name: Sign in to Azure
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS_DEV }}
+    - uses: Azure/cli@v1
+      name: Run what-if
+      with:
+        inlineScript: |
+            az deployment group what-if \
+              --resource-group ${{ env.AZURE_DEV_RESOURCEGROUP_NAME }} \
+              --template-file main.bicep \
+              --parameters environmentName=Development \
+                           applicationNamePrefix=${{ env.APP_NAME_PREFIX }} \
+                           slotEnabled=${{ env.SLOT_ENABLED }}
+                           databasePassword=${{ secrets.DATABASEPASSWORD }}
+                           ghostContainerName=${{ env.GHOST_CONTAINER }}
+
+  # Deploy the dev/test template
+  deploy:
+    runs-on: ubuntu-latest
+    needs: preview
+    outputs:
+      appServiceAppHostName: ${{ steps.deploy.outputs.appServiceAppHostName }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: azure/login@v1
+      name: Sign in to Azure
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS_DEV }}
+    - uses: azure/arm-deploy@v1
+      id: deploy
+      name: Deploy solution
+      with:
+        failOnStdErr: false
+        deploymentName: ${{ github.run_number }}
+        resourceGroupName: ${{ env.AZURE_DEV_RESOURCEGROUP_NAME }}
+        template: ./main.bicep
+        parameters: environmentName=Development applicationNamePrefix=${{ env.APP_NAME_PREFIX }} slotEnabled=${{ env.SLOT_ENABLED }} databasePassword=${{ secrets.DATABASEPASSWORD }} ghostContainerName=${{ env.GHOST_CONTAINER }}
+
+  # Run the dev/test smoke test
+  smoke-test:
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps: 
+    - uses: actions/checkout@v2
+    - run: |
+        $container = New-PesterContainer `
+          -Path 'tests/Website.Tests.ps1' `
+          -Data @{ HostName = '${{needs.deploy.outputs.appServiceAppHostName}}' }
+        Invoke-Pester `
+          -Container $container `
+          -CI
+      name: Run smoke tests
+      shell: pwsh
