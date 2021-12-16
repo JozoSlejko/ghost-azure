@@ -37,7 +37,11 @@ jobs:
         deploymentName: ${{ github.run_number }}
         resourceGroupName: ${{ env.AZURE_DEV_RESOURCEGROUP_NAME }}
         template: ./main.bicep
-        parameters: environmentName=Development applicationNamePrefix=${{ env.APP_NAME_PREFIX }} slotEnabled=${{ env.SLOT_ENABLED }} databasePassword=${{ secrets.DATABASEPASSWORD }} ghostContainerName=${{ env.GHOST_CONTAINER }}
+        parameters: environmentName=Development
+                    applicationNamePrefix=${{ env.APP_NAME_PREFIX }}
+                    slotEnabled=${{ env.SLOT_ENABLED }}
+                    databasePassword=${{ secrets.DATABASEPASSWORD }}
+                    ghostContainerName=${{ env.GHOST_CONTAINER }}
         deploymentMode: Validate
 
   # Run the what-if of the dev/test template
@@ -59,8 +63,8 @@ jobs:
               --template-file main.bicep \
               --parameters environmentName=Development \
                            applicationNamePrefix=${{ env.APP_NAME_PREFIX }} \
-                           slotEnabled=${{ env.SLOT_ENABLED }}
-                           databasePassword=${{ secrets.DATABASEPASSWORD }}
+                           slotEnabled=${{ env.SLOT_ENABLED }} \
+                           databasePassword=${{ secrets.DATABASEPASSWORD }} \
                            ghostContainerName=${{ env.GHOST_CONTAINER }}
 
   # Deploy the dev/test template
@@ -83,7 +87,11 @@ jobs:
         deploymentName: ${{ github.run_number }}
         resourceGroupName: ${{ env.AZURE_DEV_RESOURCEGROUP_NAME }}
         template: ./main.bicep
-        parameters: environmentName=Development applicationNamePrefix=${{ env.APP_NAME_PREFIX }} slotEnabled=${{ env.SLOT_ENABLED }} databasePassword=${{ secrets.DATABASEPASSWORD }} ghostContainerName=${{ env.GHOST_CONTAINER }}
+        parameters: environmentName=Development
+                    applicationNamePrefix=${{ env.APP_NAME_PREFIX }}
+                    slotEnabled=${{ env.SLOT_ENABLED }}
+                    databasePassword=${{ secrets.DATABASEPASSWORD }}
+                    ghostContainerName=${{ env.GHOST_CONTAINER }}
 
   # Run the dev/test smoke test
   smoke-test:
