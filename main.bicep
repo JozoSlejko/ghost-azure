@@ -11,7 +11,11 @@ param environmentName string
 param applicationNamePrefix string = 'ghost'
 
 @description('Enable the additional Web App slot.')
-param slotEnabled bool = false
+@allowed([
+  'Yes'
+  'No'
+])
+param webSlotEnabled string
 
 @description('Location to deploy the resources')
 param location string = resourceGroup().location
@@ -60,6 +64,8 @@ var tags = {
   'provisioned-by': 'bicep'
   'last-provisioned': baseTime
 }
+
+var slotEnabled = (webSlotEnabled == 'Yes') ? true : false
 
 @description('Define the SKUs for each component based on the environment type.')
 var environmentConfigurationMap = {
@@ -131,7 +137,7 @@ module storageAccount 'modules/storageAccount.bicep' = {
   }
 }
 
-module slotStorageAccount 'modules/storageAccount.bicep' = if (slotEnabled) {
+module slotStorageAccount 'modules/storageAccount.bicep' = if (slotEnabled == 'Yes') {
   name: 'slotStorageAccountDeploy'
   params: {
     tags: tags

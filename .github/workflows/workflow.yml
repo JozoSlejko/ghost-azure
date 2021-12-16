@@ -10,7 +10,7 @@ env:
   AZURE_DEV_RESOURCEGROUP_NAME: j-ghost-dev-rg-01
   AZURE_PROD_RESOURCEGROUP_NAME: j-ghost-prod-rg-01
   APP_NAME_PREFIX: ghost
-  SLOT_ENABLED: '$true'
+  SLOT_ENABLED: 'Yes'
   GHOST_CONTAINER: ghost:4.29.0-alpine
 
 jobs:
@@ -39,7 +39,7 @@ jobs:
         template: ./main.bicep
         parameters: environmentName=Development
                     applicationNamePrefix=${{ env.APP_NAME_PREFIX }}
-                    slotEnabled=${{ env.SLOT_ENABLED }}
+                    webSlotEnabled=${{ env.SLOT_ENABLED }}
                     databasePassword=${{ secrets.DATABASEPASSWORD }}
                     ghostContainerName=${{ env.GHOST_CONTAINER }}
         deploymentMode: Validate
@@ -63,7 +63,7 @@ jobs:
               --template-file main.bicep \
               --parameters environmentName=Development \
                            applicationNamePrefix=${{ env.APP_NAME_PREFIX }} \
-                           slotEnabled=${{ env.SLOT_ENABLED }} \
+                           webSlotEnabled=${{ env.SLOT_ENABLED }} \
                            databasePassword=${{ secrets.DATABASEPASSWORD }} \
                            ghostContainerName=${{ env.GHOST_CONTAINER }}
 
@@ -89,7 +89,7 @@ jobs:
         template: ./main.bicep
         parameters: environmentName=Development
                     applicationNamePrefix=${{ env.APP_NAME_PREFIX }}
-                    slotEnabled=${{ env.SLOT_ENABLED }}
+                    webSlotEnabled=${{ env.SLOT_ENABLED }}
                     databasePassword=${{ secrets.DATABASEPASSWORD }}
                     ghostContainerName=${{ env.GHOST_CONTAINER }}
 
