@@ -94,7 +94,7 @@ jobs:
                     webSlotEnabled=${{ env.SLOT_ENABLED }}
                     databasePassword=${{ secrets.DATABASEPASSWORD }}
                     ghostContainerName=${{ env.GHOST_CONTAINER }}
-    - name: Setup Node ${{ env.NODE_VERSION }} Environment
+    - name: Setup Node 16 Environment
       uses: actions/setup-node@v2
       with:
         node-version: '16'
@@ -111,7 +111,7 @@ jobs:
       id: fa
       with:
         app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-        package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
+        package: './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
 
   # Run the dev/test smoke test
   smoke-test:
