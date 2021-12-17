@@ -73,8 +73,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: preview-dev
     outputs:
-      endpointHostName: ${{ steps.deploy-dev.outputs.endpointHostName }}
-      faName: ${{ steps.deploy-dev.outputs.faName }}
+      endpointHostName: ${{ steps.deploy.outputs.endpointHostName }}
+      faName: ${{ steps.deploy.outputs.faName }}
     steps:
     - uses: actions/checkout@v2
     - uses: azure/login@v1
@@ -121,7 +121,7 @@ jobs:
       uses: Azure/functions-action@v1
       id: fa
       with:
-        app-name: ${{ needs.deploy-dev.outputs.faName }}
+        app-name: ${{needs.deploy-dev.outputs.faName}}
         package: './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
         respect-funcignore: true
 
@@ -136,7 +136,7 @@ jobs:
     - run: |
         $container = New-PesterContainer `
           -Path 'tests/Website.Tests.ps1' `
-          -Data @{ HostName = '${{needs.deploy.outputs.endpointHostName}}' }
+          -Data @{ HostName = '${{needs.deploy-dev.outputs.endpointHostName}}' }
         Invoke-Pester `
           -Container $container `
           -CI
