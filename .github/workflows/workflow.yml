@@ -111,7 +111,7 @@ jobs:
       id: fa
       with:
         app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-        package: './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
+        package: './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
 
   # Run the dev/test smoke test
   smoke-test:
