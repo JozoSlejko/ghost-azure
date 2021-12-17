@@ -12,7 +12,6 @@ env:
   APP_NAME_PREFIX: ghost
   SLOT_ENABLED: 'Yes'
   GHOST_CONTAINER: ghost:4.29.0-alpine
-  #AZURE_FUNCTIONAPP_NAME: ghost-fa-dev-yx2khfxzfxlrq    # set this to your application's name
   AZURE_FUNCTIONAPP_PACKAGE_PATH: 'function'      # set this to the path to your web app project, defaults to the repository root
 
 jobs:
@@ -124,6 +123,7 @@ jobs:
       with:
         app-name: ${{ needs.deploy-dev.outputs.faName }}
         package: './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+        respect-funcignore: true
 
 
 
