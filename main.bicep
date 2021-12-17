@@ -307,3 +307,4 @@ output webAppName string = webApp.outputs.name
 output webAppPrincipalId string = webApp.outputs.principalId
 output webAppHostName string = webApp.outputs.hostName
 output endpointHostName string = frontDoor.outputs.frontendEndpointHostName
+output faName string = function.outputs.name

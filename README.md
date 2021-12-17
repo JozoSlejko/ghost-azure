@@ -44,7 +44,8 @@ Ghost application doesn't support clustering of ghost web instances.
 
 ### Disaster recovery
 
-In regards to disaster recovery, the solution design supports deployment of.
+With regards to disaster recovery, elements of the solution support replication or failover to a paired region.
+Storage account is geo-replicated, database replication can be enabled to a paired region, container image deployed to a paired region, and Front Door is a global service.
 
 ## Deployment
 
@@ -63,3 +64,12 @@ Following are the prerequisites that need to be met for the Github workflow:
 * Access - Service principal Contributor access to the respective environment resource group
 
 * Actions secrets - secrets in the repository for authentication and authorizing Github workflow with Azure resource groups
+
+## Function App
+
+Function App is implemented which triggers on a HTTP request and deletes all Ghost posts using a call to Ghost Admin API endpoint.
+The app is deployed using the same Github workflow.
+
+### Function App Prerequisites
+
+Ghost Admin API key needs to be generated manually in the Ghost admin portal and added as a GhostAdminApiKey application setting in the function app after the function deployment.

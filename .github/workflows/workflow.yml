@@ -12,7 +12,7 @@ env:
   APP_NAME_PREFIX: ghost
   SLOT_ENABLED: 'Yes'
   GHOST_CONTAINER: ghost:4.29.0-alpine
-  AZURE_FUNCTIONAPP_NAME: ghost-fa-dev-yx2khfxzfxlrq    # set this to your application's name
+  #AZURE_FUNCTIONAPP_NAME: ghost-fa-dev-yx2khfxzfxlrq    # set this to your application's name
   AZURE_FUNCTIONAPP_PACKAGE_PATH: 'function'      # set this to the path to your web app project, defaults to the repository root
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
       run: az bicep build --file ./main.bicep
 
   # Validate the dev/test template
-  validate: 
+  validate-dev: 
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -47,9 +47,9 @@ jobs:
         deploymentMode: Validate
 
   # Run the what-if of the dev/test template
-  preview:
+  preview-dev:
     runs-on: ubuntu-latest
-    needs: [lint, validate]
+    needs: [lint, validate-dev]
     steps:
     - uses: actions/checkout@v2
     - uses: azure/login@v1
@@ -69,12 +69,13 @@ jobs:
                            databasePassword=${{ secrets.DATABASEPASSWORD }} \
                            ghostContainerName=${{ env.GHOST_CONTAINER }}
 
-  # Deploy the dev/test template
-  deploy:
+  # Deploy the dev/test bicep template
+  deploy-dev:
     runs-on: ubuntu-latest
-    needs: preview
+    needs: preview-dev
     outputs:
-      endpointHostName: ${{ steps.deploy.outputs.endpointHostName }}
+      endpointHostName: ${{ steps.deploy-dev.outputs.endpointHostName }}
+      faName: ${{ steps.deploy-dev.outputs.faName }}
     steps:
     - uses: actions/checkout@v2
     - uses: azure/login@v1
@@ -83,7 +84,7 @@ jobs:
         creds: ${{ secrets.AZURE_CREDENTIALS_DEV }}
     - uses: azure/arm-deploy@v1
       id: deploy
-      name: Deploy solution
+      name: Deploy dev environment
       with:
         failOnStdErr: false
         deploymentName: ${{ github.run_number }}
@@ -94,6 +95,17 @@ jobs:
                     webSlotEnabled=${{ env.SLOT_ENABLED }}
                     databasePassword=${{ secrets.DATABASEPASSWORD }}
                     ghostContainerName=${{ env.GHOST_CONTAINER }}
+
+# Deploy the dev/test function code
+  deploy-function-dev:
+    runs-on: ubuntu-latest
+    needs: deploy-dev
+    steps:
+    - uses: actions/checkout@v2
+    - uses: azure/login@v1
+      name: Sign in to Azure
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS_DEV }}
     - name: Setup Node 16 Environment
       uses: actions/setup-node@v2
       with:
@@ -110,13 +122,15 @@ jobs:
       uses: Azure/functions-action@v1
       id: fa
       with:
-        app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+        app-name: ${{ needs.deploy-dev.outputs.faName }}
         package: './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+
+
 
   # Run the dev/test smoke test
   smoke-test:
     runs-on: ubuntu-latest
-    needs: deploy
+    needs: [deploy-dev, deploy-function-dev]
     steps: 
     - uses: actions/checkout@v2
     - run: |

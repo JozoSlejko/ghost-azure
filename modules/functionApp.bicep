@@ -62,7 +62,7 @@ resource function 'Microsoft.Web/sites@2021-01-15' = {
         }
         {
           name: 'GhostApiUrl'
-          value: frontdoorHostName
+          value: 'https://${frontdoorHostName}'
         }
       ]
       use32BitWorkerProcess: false
