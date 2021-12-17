@@ -41,6 +41,7 @@ var appServicePlanName = '${applicationNamePrefix}-asp-${environmentCode}-${uniq
 
 var functionName = '${applicationNamePrefix}-fa-${environmentCode}-${uniqueString(resourceGroup().id)}'
 var faAppServicePlanName = '${applicationNamePrefix}-fa-asp-${environmentCode}-${uniqueString(resourceGroup().id)}'
+var faResourceGroup = 'rg-${applicationNamePrefix}-fa-${environmentCode}'
 
 var logAnalyticsWorkspaceName = '${applicationNamePrefix}-la-${environmentCode}-${uniqueString(resourceGroup().id)}'
 var applicationInsightsName = '${applicationNamePrefix}-ai-${environmentCode}-${uniqueString(resourceGroup().id)}'
@@ -256,6 +257,7 @@ module frontDoor 'modules/frontDoor.bicep' = {
 // App Service Plan
 module faAppServicePlan './modules/appServicePlan.bicep' = {
   name: 'faAppServicePlanDeploy'
+  scope: resourceGroup(faResourceGroup)
   params: {
     tags: tags
     appServicePlanName: faAppServicePlanName
@@ -267,66 +269,31 @@ module faAppServicePlan './modules/appServicePlan.bicep' = {
 
 
 // Storage account
-resource faStorageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' = {
-  name: faStorageAccountName
-  location: location
-  tags: tags
-  kind: 'StorageV2'
-  sku: {
-    name: environmentConfigurationMap[environmentName].storageAccount.sku.name
-  }
-  properties: {
-    supportsHttpsTrafficOnly: true
-    minimumTlsVersion: 'TLS1_2'
+module faStorageAccount 'modules/faStorageAccount.bicep' = {
+  name: 'faStorageAccountDeploy'
+  scope: resourceGroup(faResourceGroup)
+  params: {
+    tags: tags
+    storageAccountName: faStorageAccountName
+    storageAccountSku: environmentConfigurationMap[environmentName].storageAccount.sku.name
+    logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
+    location: location
   }
 }
 
+
 // Function
-resource Function 'Microsoft.Web/sites@2021-01-15' = {
-  name: functionName
-  kind: 'Functionapp'
-  location: resourceGroup().location
-  tags: tags
-  properties: {
-    serverFarmId: faAppServicePlan.outputs.id
-    siteConfig: {
-      appSettings: [
-        {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: 'applicationInsights.outputs.InstrumentationKey'
-        }
-        {
-          name: 'FUNCTIONS_EXTENSION_VERSION'
-          value: '~4'
-        }
-        {
-            name: 'FUNCTIONS_WORKER_RUNTIME'
-            value: 'node'
-        }
-        {
-          name: 'AzureWebJobsStorage'
-          value: 'DefaultEndpointsProtocol=https;AccountName=${faStorageAccount.name};AccountKey=${listKeys(faStorageAccount.id, faStorageAccount.apiVersion).keys[0].value};EndpointSuffix=core.windows.net'
-        }
-        {
-          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
-          value: 'DefaultEndpointsProtocol=https;AccountName=${faStorageAccount.name};AccountKey=${listKeys(faStorageAccount.id, faStorageAccount.apiVersion).keys[0].value};EndpointSuffix=core.windows.net'
-        }
-        {
-          name: 'WEBSITE_CONTENTSHARE'
-          value: '${toLower(functionName)}files'
-        }
-        {
-          name: 'GhostAdminApiKey'
-          value: ''
-        }
-        {
-          name: 'GhostApiUrl'
-          value: frontDoor.outputs.frontendEndpointHostName
-        }
-      ]
-      use32BitWorkerProcess: false
-      linuxFxVersion: 'Node|16'
-    }
+module function './modules/functionApp.bicep' = {
+  name: 'functionAppDeploy'
+  scope: resourceGroup(faResourceGroup)
+  params: {
+    tags: tags
+    webAppName: functionName
+    appServicePlanId: faAppServicePlan.outputs.id
+    storageAccountName: faStorageAccount.outputs.name
+    location: location
+    logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
+    frontdoorHostName: frontDoor.outputs.frontendEndpointHostName
   }
 }
 
