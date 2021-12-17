@@ -292,7 +292,6 @@ module function './modules/functionApp.bicep' = {
     appServicePlanId: faAppServicePlan.outputs.id
     storageAccountName: faStorageAccount.outputs.name
     location: location
-    logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
     frontdoorHostName: frontDoor.outputs.frontendEndpointHostName
   }
 }
