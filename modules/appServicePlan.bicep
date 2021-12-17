@@ -18,6 +18,7 @@ param appServicePlanName string
   'P1v2'
   'P2v2'
   'P3v2'
+  'Y1'
 ])
 param appServicePlanSku string
 
