@@ -289,6 +289,7 @@ module function './modules/functionApp.bicep' = {
   params: {
     tags: tags
     webAppName: functionName
+    appInsightsIntrumentationKey: applicationInsights.outputs.InstrumentationKey
     appServicePlanId: faAppServicePlan.outputs.id
     storageAccountName: faStorageAccount.outputs.name
     location: location

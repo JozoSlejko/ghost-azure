@@ -8,6 +8,8 @@ param webAppName string
 
 param frontdoorHostName string
 
+param appInsightsIntrumentationKey string
+
 @description('Location to deploy the resources')
 param location string = resourceGroup().location
 
@@ -32,7 +34,7 @@ resource function 'Microsoft.Web/sites@2021-01-15' = {
       appSettings: [
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: 'applicationInsights.outputs.InstrumentationKey'
+          value: appInsightsIntrumentationKey
         }
         {
           name: 'FUNCTIONS_EXTENSION_VERSION'

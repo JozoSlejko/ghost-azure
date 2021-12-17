@@ -12,6 +12,8 @@ env:
   APP_NAME_PREFIX: ghost
   SLOT_ENABLED: 'Yes'
   GHOST_CONTAINER: ghost:4.29.0-alpine
+  AZURE_FUNCTIONAPP_NAME: ghost-fa-dev-yx2khfxzfxlrq    # set this to your application's name
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'function'      # set this to the path to your web app project, defaults to the repository root
 
 jobs:
   # Lint the Bicep file.
@@ -92,6 +94,24 @@ jobs:
                     webSlotEnabled=${{ env.SLOT_ENABLED }}
                     databasePassword=${{ secrets.DATABASEPASSWORD }}
                     ghostContainerName=${{ env.GHOST_CONTAINER }}
+    - name: Setup Node ${{ env.NODE_VERSION }} Environment
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+    - name: 'Resolve Project Dependencies Using Npm'
+      shell: bash
+      run: |
+        pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+        npm install
+        npm run build --if-present
+        npm run test --if-present
+        popd
+    - name: 'Run Azure Functions Action'
+      uses: Azure/functions-action@v1
+      id: fa
+      with:
+        app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+        package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
 
   # Run the dev/test smoke test
   smoke-test:
