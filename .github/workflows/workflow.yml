@@ -1,7 +1,10 @@
 name: deploy-ghost-azure
 concurrency: ghost-azure
 
-on: workflow_dispatch
+on: 
+  push:
+    branches: 
+      - feature/aad-sp
 
 env:
   AZURE_DEV_RESOURCEGROUP_NAME: rg-ghost-dev-01
