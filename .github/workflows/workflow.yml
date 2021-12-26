@@ -12,7 +12,9 @@ env:
   APP_NAME_PREFIX: ghost
   SLOT_ENABLED: 'Yes'
   GHOST_CONTAINER: ghost:4.29.0-alpine
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'function'      # set this to the path to your web app project, defaults to the repository root
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'function'
+  AAD_TENANT: '82850fa2-55e9-4b75-bd6b-98c6cc219872'
+  DEV_SP_ID: '28bdb590-552f-4919-b983-305caab5111a'
 
 jobs:
   # Lint the Bicep file.
@@ -43,6 +45,10 @@ jobs:
                     webSlotEnabled=${{ env.SLOT_ENABLED }}
                     databasePassword=${{ secrets.DATABASEPASSWORD }}
                     ghostContainerName=${{ env.GHOST_CONTAINER }}
+                    tenantID=${{ env.AAD_TENANT }}
+                    spId=${{ env.DEV_SP_ID }}
+                    spPassword=${{ secrets.DEV_SP_PASSWORD }}
+                    appPassword==${{ secrets.DEV_APP_PASSWORD }}
         deploymentMode: Validate
 
   # Run the what-if of the dev/test template
@@ -67,6 +73,10 @@ jobs:
                            webSlotEnabled=${{ env.SLOT_ENABLED }} \
                            databasePassword=${{ secrets.DATABASEPASSWORD }} \
                            ghostContainerName=${{ env.GHOST_CONTAINER }}
+                           tenantID=${{ env.AAD_TENANT }}
+                           spId=${{ env.DEV_SP_ID }}
+                           spPassword=${{ secrets.DEV_SP_PASSWORD }}
+                           appPassword==${{ secrets.DEV_APP_PASSWORD }}
 
   # Deploy the dev/test bicep template
   deploy-dev:
@@ -94,6 +104,10 @@ jobs:
                     webSlotEnabled=${{ env.SLOT_ENABLED }}
                     databasePassword=${{ secrets.DATABASEPASSWORD }}
                     ghostContainerName=${{ env.GHOST_CONTAINER }}
+                    tenantID=${{ env.AAD_TENANT }}
+                    spId=${{ env.DEV_SP_ID }}
+                    spPassword=${{ secrets.DEV_SP_PASSWORD }}
+                    appPassword==${{ secrets.DEV_APP_PASSWORD }}
 
 # Deploy the dev/test function code
   deploy-function-dev:

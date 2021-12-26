@@ -77,4 +77,5 @@ resource keyVaultDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-p
   }
 }
 
+#disable-next-line outputs-should-not-contain-secrets // Does not contain a password
 output databasePasswordSecretUri string = keyVaultSecret.properties.secretUri

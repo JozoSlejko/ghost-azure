@@ -7,8 +7,22 @@ targetScope = 'resourceGroup'
 ])
 param environmentName string
 
+@description('Azure AD Tenant ID.')
+param tenantId string
+
+@description('Service principal ID.')
+param spId string
+
+@description('Service principal secret.')
+@secure()
+param spPassword string
+
 @description('Prefix to use when creating the resources in this deployment.')
-param applicationNamePrefix string = 'ghost'
+param applicationNamePrefix string
+
+@description('Azure AD Application Secret.')
+@secure()
+param appPassword string
 
 @description('Enable the additional Web App slot.')
 @allowed([
@@ -88,7 +102,7 @@ var environmentConfigurationMap = {
     }
     mySqlServer: {
       sku: {
-        name: 'GP_Gen5_4'
+        name: 'GP_Gen5_2'
       }
     }
     logAnalyticsWorkspace: {
@@ -281,12 +295,27 @@ module faStorageAccount 'modules/faStorageAccount.bicep' = {
   }
 }
 
+// Azure AD application for Function authentication
+
+module faAzureadApp 'modules/aadApp.bicep' = {
+  name: 'faAzureAdAppDeploy'
+  params: {
+    appPassword: appPassword
+    siteName: functionName
+    spId: spId
+    spPassword: spPassword
+    tenantId: tenantId
+  }
+}
 
 // Function
 module function './modules/functionApp.bicep' = {
   name: 'functionAppDeploy'
   scope: resourceGroup(faResourceGroup)
   params: {
+    appId: faAzureadApp.outputs.applicationId
+    appPassword: appPassword
+    tenantId: tenantId
     tags: tags
     webAppName: functionName
     appInsightsIntrumentationKey: applicationInsights.outputs.InstrumentationKey
