@@ -295,6 +295,11 @@ module faStorageAccount 'modules/faStorageAccount.bicep' = {
   }
 }
 
+// Sleep
+module sleep 'modules/sleep-script.bicep' = {
+  name: 'sleepDeploy'
+}
+
 // Azure AD application for Function authentication
 
 module faAzureadApp 'modules/aadApp.bicep' = {
