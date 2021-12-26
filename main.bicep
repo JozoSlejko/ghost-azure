@@ -8,7 +8,7 @@ targetScope = 'resourceGroup'
 param environmentName string
 
 @description('Azure AD Tenant ID.')
-param tenantId string
+param aadTenantId string
 
 @description('Service principal ID.')
 param spId string
@@ -304,7 +304,7 @@ module faAzureadApp 'modules/aadApp.bicep' = {
     siteName: functionName
     spId: spId
     spPassword: spPassword
-    tenantId: tenantId
+    tenantId: aadTenantId
   }
 }
 
@@ -315,7 +315,7 @@ module function './modules/functionApp.bicep' = {
   params: {
     appId: faAzureadApp.outputs.applicationId
     appPassword: appPassword
-    tenantId: tenantId
+    tenantId: aadTenantId
     tags: tags
     webAppName: functionName
     appInsightsIntrumentationKey: applicationInsights.outputs.InstrumentationKey

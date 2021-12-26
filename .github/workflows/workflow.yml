@@ -13,7 +13,7 @@ env:
   SLOT_ENABLED: 'No'
   GHOST_CONTAINER: ghost:4.29.0-alpine
   AZURE_FUNCTIONAPP_PACKAGE_PATH: 'function'
-  AAD_TENANT: '82850fa2-55e9-4b75-bd6b-98c6cc219872'
+  AAD_TENANT_ID: '82850fa2-55e9-4b75-bd6b-98c6cc219872'
   DEV_SP_ID: '28bdb590-552f-4919-b983-305caab5111a'
 
 jobs:
@@ -45,7 +45,7 @@ jobs:
                     webSlotEnabled=${{ env.SLOT_ENABLED }}
                     databasePassword=${{ secrets.DATABASEPASSWORD }}
                     ghostContainerName=${{ env.GHOST_CONTAINER }}
-                    tenantID=${{ env.AAD_TENANT }}
+                    aadTenantId=${{ env.AAD_TENANT_ID }}
                     spId=${{ env.DEV_SP_ID }}
                     spPassword=${{ secrets.DEV_SP_PASSWORD }}
                     appPassword==${{ secrets.DEV_APP_PASSWORD }}
@@ -73,7 +73,7 @@ jobs:
                            webSlotEnabled=${{ env.SLOT_ENABLED }} \
                            databasePassword=${{ secrets.DATABASEPASSWORD }} \
                            ghostContainerName=${{ env.GHOST_CONTAINER }}
-                           tenantID=${{ env.AAD_TENANT }}
+                           aadTenantId=${{ env.AAD_TENANT_ID }}
                            spId=${{ env.DEV_SP_ID }}
                            spPassword=${{ secrets.DEV_SP_PASSWORD }}
                            appPassword==${{ secrets.DEV_APP_PASSWORD }}
@@ -104,7 +104,7 @@ jobs:
                     webSlotEnabled=${{ env.SLOT_ENABLED }}
                     databasePassword=${{ secrets.DATABASEPASSWORD }}
                     ghostContainerName=${{ env.GHOST_CONTAINER }}
-                    tenantID=${{ env.AAD_TENANT }}
+                    aadTenantId=${{ env.AAD_TENANT_ID }}
                     spId=${{ env.DEV_SP_ID }}
                     spPassword=${{ secrets.DEV_SP_PASSWORD }}
                     appPassword==${{ secrets.DEV_APP_PASSWORD }}
