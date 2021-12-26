@@ -72,10 +72,10 @@ jobs:
                            applicationNamePrefix=${{ env.APP_NAME_PREFIX }} \
                            webSlotEnabled=${{ env.SLOT_ENABLED }} \
                            databasePassword=${{ secrets.DATABASEPASSWORD }} \
-                           ghostContainerName=${{ env.GHOST_CONTAINER }}
-                           aadTenantId=${{ env.AAD_TENANT_ID }}
-                           spId=${{ env.DEV_SP_ID }}
-                           spPassword=${{ secrets.DEV_SP_PASSWORD }}
+                           ghostContainerName=${{ env.GHOST_CONTAINER }} \
+                           aadTenantId=${{ env.AAD_TENANT_ID }} \
+                           spId=${{ env.DEV_SP_ID }} \
+                           spPassword=${{ secrets.DEV_SP_PASSWORD }} \
                            appPassword==${{ secrets.DEV_APP_PASSWORD }}
 
   # Deploy the dev/test bicep template
