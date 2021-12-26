@@ -4,15 +4,17 @@ concurrency: ghost-azure
 on: 
   push:
     branches: 
-      - main
+      - feature/aad-sp
 
 env:
-  AZURE_DEV_RESOURCEGROUP_NAME: j-ghost-dev-rg-01
-  AZURE_PROD_RESOURCEGROUP_NAME: j-ghost-prod-rg-01
+  AZURE_DEV_RESOURCEGROUP_NAME: rg-ghost-dev-01
+  AZURE_PROD_RESOURCEGROUP_NAME: rg-ghost-prd-01
   APP_NAME_PREFIX: ghost
-  SLOT_ENABLED: 'Yes'
+  SLOT_ENABLED: 'No'
   GHOST_CONTAINER: ghost:4.29.0-alpine
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'function'      # set this to the path to your web app project, defaults to the repository root
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'function'
+  AAD_TENANT_ID: '82850fa2-55e9-4b75-bd6b-98c6cc219872'
+  DEV_SP_ID: '28bdb590-552f-4919-b983-305caab5111a'
 
 jobs:
   # Lint the Bicep file.
@@ -43,6 +45,10 @@ jobs:
                     webSlotEnabled=${{ env.SLOT_ENABLED }}
                     databasePassword=${{ secrets.DATABASEPASSWORD }}
                     ghostContainerName=${{ env.GHOST_CONTAINER }}
+                    aadTenantId=${{ env.AAD_TENANT_ID }}
+                    spId=${{ env.DEV_SP_ID }}
+                    spPassword=${{ secrets.DEV_SP_PASSWORD }}
+                    appPassword=${{ secrets.DEV_APP_PASSWORD }}
         deploymentMode: Validate
 
   # Run the what-if of the dev/test template
@@ -66,7 +72,11 @@ jobs:
                            applicationNamePrefix=${{ env.APP_NAME_PREFIX }} \
                            webSlotEnabled=${{ env.SLOT_ENABLED }} \
                            databasePassword=${{ secrets.DATABASEPASSWORD }} \
-                           ghostContainerName=${{ env.GHOST_CONTAINER }}
+                           ghostContainerName=${{ env.GHOST_CONTAINER }} \
+                           aadTenantId=${{ env.AAD_TENANT_ID }} \
+                           spId=${{ env.DEV_SP_ID }} \
+                           spPassword=${{ secrets.DEV_SP_PASSWORD }} \
+                           appPassword=${{ secrets.DEV_APP_PASSWORD }}
 
   # Deploy the dev/test bicep template
   deploy-dev:
@@ -94,6 +104,10 @@ jobs:
                     webSlotEnabled=${{ env.SLOT_ENABLED }}
                     databasePassword=${{ secrets.DATABASEPASSWORD }}
                     ghostContainerName=${{ env.GHOST_CONTAINER }}
+                    aadTenantId=${{ env.AAD_TENANT_ID }}
+                    spId=${{ env.DEV_SP_ID }}
+                    spPassword=${{ secrets.DEV_SP_PASSWORD }}
+                    appPassword=${{ secrets.DEV_APP_PASSWORD }}
 
 # Deploy the dev/test function code
   deploy-function-dev:
