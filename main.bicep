@@ -298,10 +298,12 @@ module faStorageAccount 'modules/faStorageAccount.bicep' = {
 // Sleep
 module sleep 'modules/sleep-script.bicep' = {
   name: 'sleepDeploy'
+  dependsOn: [
+    faStorageAccount
+  ]
 }
 
 // Azure AD application for Function authentication
-
 module faAzureadApp 'modules/aadApp.bicep' = {
   name: 'faAzureAdAppDeploy'
   params: {
@@ -317,6 +319,9 @@ module faAzureadApp 'modules/aadApp.bicep' = {
 module function './modules/functionApp.bicep' = {
   name: 'functionAppDeploy'
   scope: resourceGroup(faResourceGroup)
+  dependsOn: [
+    sleep
+  ]
   params: {
     appId: faAzureadApp.outputs.applicationId
     appPassword: appPassword
