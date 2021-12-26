@@ -48,7 +48,7 @@ jobs:
                     aadTenantId=${{ env.AAD_TENANT_ID }}
                     spId=${{ env.DEV_SP_ID }}
                     spPassword=${{ secrets.DEV_SP_PASSWORD }}
-                    appPassword==${{ secrets.DEV_APP_PASSWORD }}
+                    appPassword=${{ secrets.DEV_APP_PASSWORD }}
         deploymentMode: Validate
 
   # Run the what-if of the dev/test template
@@ -76,7 +76,7 @@ jobs:
                            aadTenantId=${{ env.AAD_TENANT_ID }} \
                            spId=${{ env.DEV_SP_ID }} \
                            spPassword=${{ secrets.DEV_SP_PASSWORD }} \
-                           appPassword==${{ secrets.DEV_APP_PASSWORD }}
+                           appPassword=${{ secrets.DEV_APP_PASSWORD }}
 
   # Deploy the dev/test bicep template
   deploy-dev:
@@ -107,7 +107,7 @@ jobs:
                     aadTenantId=${{ env.AAD_TENANT_ID }}
                     spId=${{ env.DEV_SP_ID }}
                     spPassword=${{ secrets.DEV_SP_PASSWORD }}
-                    appPassword==${{ secrets.DEV_APP_PASSWORD }}
+                    appPassword=${{ secrets.DEV_APP_PASSWORD }}
 
 # Deploy the dev/test function code
   deploy-function-dev:
