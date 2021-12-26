@@ -66,7 +66,7 @@ resource function 'Microsoft.Web/sites@2021-01-15' = {
         }
         {
           name: 'GhostAdminApiKey'
-          value: ''
+          value: 'placeholder'
         }
         {
           name: 'GhostApiUrl'
