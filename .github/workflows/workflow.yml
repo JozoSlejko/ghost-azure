@@ -85,6 +85,7 @@ jobs:
     outputs:
       endpointHostName: ${{ steps.deploy.outputs.endpointHostName }}
       faName: ${{ steps.deploy.outputs.faName }}
+      faHostName: ${{ steps.deploy.outputs.faHostName }}
     steps:
     - uses: actions/checkout@v2
     - uses: azure/login@v1
@@ -141,7 +142,9 @@ jobs:
         app-name: ${{needs.deploy-dev.outputs.faName}}
         package: './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
         respect-funcignore: true
-
+    - name: 'Sleep for 1 min(s)'
+      shell: bash
+      run: sleep 60s
 
 
   # Run the dev/test smoke test
@@ -153,7 +156,7 @@ jobs:
     - run: |
         $container = New-PesterContainer `
           -Path 'tests/Website.Tests.ps1' `
-          -Data @{ HostName = '${{needs.deploy-dev.outputs.endpointHostName}}' }
+          -Data @{ HostName = '${{needs.deploy-dev.outputs.endpointHostName}}'; FunctionHostName = '${{needs.deploy-dev.outputs.faHostName}}' }
         Invoke-Pester `
           -Container $container `
           -CI
