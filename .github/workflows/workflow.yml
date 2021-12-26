@@ -1,16 +1,13 @@
 name: deploy-ghost-azure
 concurrency: ghost-azure
 
-on: 
-  push:
-    branches: 
-      - main
+on: workflow_dispatch
 
 env:
-  AZURE_DEV_RESOURCEGROUP_NAME: j-ghost-dev-rg-01
-  AZURE_PROD_RESOURCEGROUP_NAME: j-ghost-prod-rg-01
+  AZURE_DEV_RESOURCEGROUP_NAME: rg-ghost-dev-01
+  AZURE_PROD_RESOURCEGROUP_NAME: rg-ghost-prd-01
   APP_NAME_PREFIX: ghost
-  SLOT_ENABLED: 'Yes'
+  SLOT_ENABLED: 'No'
   GHOST_CONTAINER: ghost:4.29.0-alpine
   AZURE_FUNCTIONAPP_PACKAGE_PATH: 'function'
   AAD_TENANT: '82850fa2-55e9-4b75-bd6b-98c6cc219872'
