@@ -4,7 +4,7 @@ concurrency: ghost-azure
 on: 
   push:
     branches: 
-      - feature/aad-sp
+      - 'main'
 
 env:
   AZURE_DEV_RESOURCEGROUP_NAME: rg-ghost-dev-01
@@ -108,6 +108,9 @@ jobs:
                     spId=${{ env.DEV_SP_ID }}
                     spPassword=${{ secrets.DEV_SP_PASSWORD }}
                     appPassword=${{ secrets.DEV_APP_PASSWORD }}
+    - name: 'Sleep for 2 mins'
+      shell: bash
+      run: sleep 120s
 
 # Deploy the dev/test function code
   deploy-function-dev:
