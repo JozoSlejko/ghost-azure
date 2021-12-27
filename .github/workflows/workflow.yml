@@ -28,6 +28,7 @@ jobs:
   # Validate the dev/test template
   validate-dev: 
     runs-on: ubuntu-latest
+    needs: lint
     steps:
     - uses: actions/checkout@v2
     - uses: azure/login@v1

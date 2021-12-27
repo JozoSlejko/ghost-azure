@@ -87,6 +87,8 @@ var tags = {
 
 var slotEnabled = (webSlotEnabled == 'Yes') ? true : false
 
+var servicePrincipalIds = concat(webApp.outputs.principalIds, array(function.outputs.faPrincipalId))
+
 @description('Define the SKUs for each component based on the environment type.')
 var environmentConfigurationMap = {
   Production: {
@@ -174,10 +176,12 @@ module keyVault './modules/keyVault.bicep' = {
   params: {
     tags: tags
     keyVaultName: keyVaultName
-    keyVaultSecretName: 'databasePassword'
-    keyVaultSecretValue: databasePassword
+    databaseSecretName: 'databasePassword'
+    databaseSecretValue: databasePassword // from Github Secrets
+    faAdAppSecretName: 'functionAdAppPassword'
+    faAdAppSecretValue: appPassword // from Github Secrets
     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
-    servicePrincipalIds: webApp.outputs.principalIds
+    servicePrincipalIds: servicePrincipalIds
     location: location
   }
 }
@@ -324,18 +328,28 @@ module function './modules/functionApp.bicep' = {
   ]
   params: {
     appId: faAzureadApp.outputs.applicationId
-    appPassword: appPassword
     tenantId: aadTenantId
     tags: tags
-    webAppName: functionName
-    appInsightsIntrumentationKey: applicationInsights.outputs.InstrumentationKey
+    functionAppName: functionName
     appServicePlanId: faAppServicePlan.outputs.id
     storageAccountName: faStorageAccount.outputs.name
     location: location
-    frontdoorHostName: frontDoor.outputs.frontendEndpointHostName
   }
 }
 
+// Function settings
+module functionAppSettings './modules/functionAppSettings.bicep' = {
+  name: 'functionAppSettingsDeploy'
+  scope:resourceGroup(faResourceGroup)
+  params: {
+    functionAppName: function.outputs.name
+    storageAccountName: faStorageAccount.outputs.name
+    frontdoorHostName: frontDoor.outputs.frontendEndpointHostName
+    appPasswordUri: keyVault.outputs.functionAppPasswordSecretUri
+    applicationInsightsConnectionString: applicationInsights.outputs.ConnectionString
+    applicationInsightsInstrumentationKey: applicationInsights.outputs.InstrumentationKey
+  }
+}
 
 // Function app section end
 ///////////////////////////////////////////////////////////

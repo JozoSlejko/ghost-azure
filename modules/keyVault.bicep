@@ -7,14 +7,23 @@ param tags object = {}
 @maxLength(24)
 param keyVaultName string
 
-@description('Secret name to store')
+@description('Database secret name to store')
 @minLength(1)
 @maxLength(127)
-param keyVaultSecretName string
+param databaseSecretName string
 
-@description('Secret value to store')
+@description('Database secret value to store')
 @secure()
-param keyVaultSecretValue string
+param databaseSecretValue string
+
+@description('Function App AD app secret name to store')
+@minLength(1)
+@maxLength(127)
+param faAdAppSecretName string
+
+@description('Function App AD app secret value to store')
+@secure()
+param faAdAppSecretValue string
 
 @description('Location to deploy the resources')
 param location string = resourceGroup().location
@@ -22,7 +31,7 @@ param location string = resourceGroup().location
 @description('Log Analytics workspace id to use for diagnostics settings')
 param logAnalyticsWorkspaceId string
 
-@description('Service principal ID to provide access to the vault secrets')
+@description('Service principal IDs to provide access to the vault secrets')
 param servicePrincipalIds array
 
 var accessPolicies = [for servicePrincipal in servicePrincipalIds: {
@@ -49,11 +58,19 @@ resource keyVault 'Microsoft.KeyVault/vaults@2021-04-01-preview' = {
   }
 }
 
-resource keyVaultSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
+resource databaseKeyVaultSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
   parent: keyVault
-  name: keyVaultSecretName
+  name: databaseSecretName
   properties: {
-    value: keyVaultSecretValue
+    value: databaseSecretValue
+  }
+}
+
+resource functionAppkeyVaultSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
+  parent: keyVault
+  name: faAdAppSecretName
+  properties: {
+    value: faAdAppSecretValue
   }
 }
 
@@ -78,4 +95,6 @@ resource keyVaultDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-p
 }
 
 #disable-next-line outputs-should-not-contain-secrets // Does not contain a password
-output databasePasswordSecretUri string = keyVaultSecret.properties.secretUri
+output databasePasswordSecretUri string = databaseKeyVaultSecret.properties.secretUri
+#disable-next-line outputs-should-not-contain-secrets // Does not contain a password
+output functionAppPasswordSecretUri string = functionAppkeyVaultSecret.properties.secretUri
