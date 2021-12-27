@@ -19,6 +19,8 @@ Bicep template deploys and configures the following Azure resources to a single 
 * Azure Database for MySQL server
 * Azure Storage Account and File Share for persisting Ghost content
 * Azure Front Door endpoint with a WAF policy for securing the traffic to the Web app
+* Azure Function App hosting the serverless function for Ghost posts deletion
+* Azure AD Application for Function App authentication
 
 ## Solution Requirements
 
@@ -49,27 +51,39 @@ Storage account is geo-replicated, database replication can be enabled to a pair
 
 ## Deployment
 
-The solution is templated using Bicep.
+The solution is templated using Azure Bicep.
 
 The solution is deployed using Github workflow, but can also be manually deployed using Azure CLI or Powershell.
+
+Github workflow has a number of steps which lint and validate the bicep code before deploying the solution into the required environment.
+
+After the deployment is complete, testing step is performed to validate the run state of both Ghost frontend endpoint and Function app endpoint.
+
+Due to the nature of private Github repositories, workflow environment separation and workflow reuse features are not available. Therefore, deployment into higher level environments (staging/production) would be implemented by copy/pasting the development solution yml code, with a couple of parameter changes.
 
 ### Prerequisites
 
 Following are the prerequisites that need to be met for the Github workflow:
 
-* Resource groups - Resource groups for environments
+* Resource groups - Resource groups for solution environments and function apps
 
 * Service principals - Azure AD service principal, one for each environment
 
-* Access - Service principal Contributor access to the respective environment resource group
+* Access
+  * Service principal *Contributor* RBAC access to the respective environment resource group and function app resource groups - deploy solution via Github workflow
+  * Service principal *Cloud application administrator* Azure AD role - deploy Azure AD application for Function App authentication
 
-* Actions secrets - secrets in the repository for authentication and authorizing Github workflow with Azure resource groups
+* Github Action secrets - secrets in the repository for authentication and authorizing Github workflow with Azure resource groups
 
 ## Function App
 
-Function App is implemented which triggers on a HTTP request and deletes all Ghost posts using a call to Ghost Admin API endpoint.
-The app is deployed using the same Github workflow.
+To enable the on-demand deletion of all Ghost blog posts, Node.js Azure Function App is implemented which gets triggered via an HTTP request. When triggered, it deletes all Ghost posts using a call to Ghost Admin API endpoint.
+The Function is deployed using the same Github workflow into a separate resource group(s).
+
+Function App is enabled with Azure AD authentication.
 
 ### Function App Prerequisites
 
-Ghost Admin API key needs to be generated manually in the Ghost admin portal and added as a GhostAdminApiKey application setting in the function app after the function deployment.
+Ghost Admin API key needs to be generated manually in the Ghost admin portal and added as a *GhostAdminApiKey* application setting in the function app after the function deployment. *GhostAdminApiKey* has a placeholder value when initially deployed.
+
+When setting is populated, Function can authenticate to the Ghost Admin API endpoint.
