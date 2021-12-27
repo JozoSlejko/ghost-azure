@@ -4,19 +4,11 @@ param tenantId string
 @description('Azure AD Application ID.')
 param appId string
 
-@description('Azure AD Application Secret.')
-@secure()
-param appPassword string
-
 param tags object = {}
 
 @minLength(2)
 @maxLength(60)
-param webAppName string
-
-param frontdoorHostName string
-
-param appInsightsIntrumentationKey string
+param functionAppName string
 
 @description('Location to deploy the resources')
 param location string = resourceGroup().location
@@ -32,18 +24,17 @@ resource existingFaStorageAccount 'Microsoft.Storage/storageAccounts@2021-06-01'
 }
 
 resource function 'Microsoft.Web/sites@2021-01-15' = {
-  name: webAppName
+  name: functionAppName
   kind: 'Functionapp'
+  identity: {
+    type: 'SystemAssigned'
+  }
   location: location
   tags: tags
   properties: {
     serverFarmId: appServicePlanId
     siteConfig: {
       appSettings: [
-        {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appInsightsIntrumentationKey
-        }
         {
           name: 'FUNCTIONS_EXTENSION_VERSION'
           value: '~4'
@@ -62,19 +53,7 @@ resource function 'Microsoft.Web/sites@2021-01-15' = {
         }
         {
           name: 'WEBSITE_CONTENTSHARE'
-          value: '${toLower(webAppName)}files'
-        }
-        {
-          name: 'GhostAdminApiKey'
-          value: 'placeholder'
-        }
-        {
-          name: 'GhostApiUrl'
-          value: 'https://${frontdoorHostName}'
-        }
-        {
-          name: 'MICROSOFT_PROVIDER_AUTHENTICATION_SECRET'
-          value: appPassword
+          value: '${toLower(functionAppName)}files'
         }
       ]
       use32BitWorkerProcess: false
@@ -113,3 +92,4 @@ resource authSettings 'Microsoft.Web/sites/config@2021-02-01' = {
 
 output name string = function.name
 output hostName string = function.properties.hostNames[0]
+output faPrincipalId string = function.identity.principalId

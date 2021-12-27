@@ -4,7 +4,7 @@ concurrency: ghost-azure
 on: 
   push:
     branches: 
-      - 'main'
+      - 'feature/fa-app-keyvault'
 
 env:
   AZURE_DEV_RESOURCEGROUP_NAME: rg-ghost-dev-01
