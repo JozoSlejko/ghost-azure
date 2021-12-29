@@ -39,6 +39,10 @@ resource mySQLServer 'Microsoft.DBforMySQL/servers@2017-12-01' = {
     administratorLoginPassword: administratorPassword
     sslEnforcement: 'Enabled'
     minimalTlsVersion: 'TLS1_2'
+    storageProfile: {
+      backupRetentionDays: 15
+      geoRedundantBackup: 'Enabled'
+    }
   }
 }
 
