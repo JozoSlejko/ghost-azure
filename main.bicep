@@ -74,6 +74,7 @@ var ghostContentFileShareName = 'contentfiles'
 var ghostContentFilesMountPath = '/var/lib/ghost/content_files'
 
 var siteUrl = 'https://${frontDoorName}.azurefd.net'
+var slotSiteUrl = 'https://${webApp.outputs.stagingHostName}'
 
 var frontDoorName = '${applicationNamePrefix}-fd-${environmentCode}-${uniqueString(resourceGroup().id)}'
 var wafPolicyName = '${applicationNamePrefix}waf${uniqueString(resourceGroup().id)}'
@@ -220,7 +221,7 @@ module webAppSettings 'modules/webAppSettings.bicep' = {
     databasePasswordSecretUri: keyVault.outputs.databasePasswordSecretUri
     databaseName: databaseName
     siteUrl: siteUrl
-    slotSiteUrl: webApp.outputs.stagingHostName
+    slotSiteUrl: slotSiteUrl
   }
 }
 
