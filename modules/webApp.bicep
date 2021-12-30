@@ -177,6 +177,7 @@ resource webAppStaging 'Microsoft.Web/sites/slots@2021-02-01' = if (slotEnabled)
   }
 }
 
+/*
 resource slotConfig 'Microsoft.Web/sites/slots/config@2021-02-01' = if (slotEnabled) {
   parent: webAppStaging
   name: 'web'
@@ -193,6 +194,7 @@ resource slotConfig 'Microsoft.Web/sites/slots/config@2021-02-01' = if (slotEnab
     ]
   }
 }
+*/
 
 resource stgWebAppDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (slotEnabled) {
   scope: webAppStaging
