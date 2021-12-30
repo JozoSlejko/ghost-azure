@@ -67,6 +67,7 @@ var slotStorageAccountName = '${take('${applicationNamePrefix}sa${slotName}${uni
 var faStorageAccountName = '${take('${applicationNamePrefix}safa${uniqueString(resourceGroup().id)}', 24)}'
 
 var mySQLServerName = '${applicationNamePrefix}-mysql-${environmentCode}-${uniqueString(resourceGroup().id)}'
+var slotMySQLServerName = '${applicationNamePrefix}-mysql-${slotName}-${uniqueString(resourceGroup().id)}'
 var databaseLogin = 'ghost'
 var databaseName = 'ghost'
 
@@ -216,7 +217,7 @@ module webAppSettings 'modules/webAppSettings.bicep' = {
     containerRegistryUrl: containerRegistryUrl
     containerMountPath: ghostContentFilesMountPath
     databaseHostFQDN: mySQLServer.outputs.fullyQualifiedDomainName
-    slotDatabaseHostFQDN: ''
+    slotDatabaseHostFQDN: slotMySQLServer.outputs.fullyQualifiedDomainName
     databaseLogin: '${databaseLogin}@${mySQLServer.outputs.name}'
     databasePasswordSecretUri: keyVault.outputs.databasePasswordSecretUri
     databaseName: databaseName
@@ -255,6 +256,19 @@ module mySQLServer 'modules/mySQLServer.bicep' = {
     location: location
     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
     mySQLServerName: mySQLServerName
+    mySQLServerSku: environmentConfigurationMap[environmentName].mySqlServer.sku.name
+  }
+}
+
+module slotMySQLServer 'modules/mySQLServer.bicep' = if (slotEnabled == 'Yes') {
+  name: 'slotMySQLServerDeploy'
+  params: {
+    tags: tags
+    administratorLogin: databaseLogin
+    administratorPassword: databasePassword
+    location: location
+    logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
+    mySQLServerName: slotMySQLServerName
     mySQLServerSku: environmentConfigurationMap[environmentName].mySqlServer.sku.name
   }
 }

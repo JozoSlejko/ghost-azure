@@ -72,7 +72,7 @@ resource webAppSettings 'Microsoft.Web/sites/config@2021-01-15' = {
   }
 }
 
-resource stgWebAppSettings 'Microsoft.Web/sites/slots/config@2021-02-01' = if (slotEnabled) {
+resource slotWebAppSettings 'Microsoft.Web/sites/slots/config@2021-02-01' = if (slotEnabled) {
   parent: existingSlotWebApp
   name: 'appsettings'
   properties: {
