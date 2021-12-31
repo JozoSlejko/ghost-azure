@@ -18,7 +18,7 @@ param spPassword string
 @description('Prefix to use when creating the resources in this deployment.')
 param applicationNamePrefix string
 
-@description('Azure AD Application Secret - used by the Function App')
+@description('Azure AD Application Secret - used by the Function App External Authentication')
 @secure()
 param appPassword string
 
@@ -39,11 +39,6 @@ param databasePassword string
 @description('Ghost container full image name and tag')
 param ghostContainerName string = 'ghost:4.32.0-alpine'
 
-/*
-@description('Container registry where the image is hosted')
-param containerRegistryUrl string // Docker Hub example: 'https://index.docker.io/v1'
-*/
-
 @description('Azure Container registry name where the image is hosted')
 param azureContainerRegistryName string = 'jacrtst01'
 
@@ -56,7 +51,7 @@ var environmentCode = environmentName == 'Production' ? 'prd' : 'dev'
 
 var slotName = environmentName == 'Production' ? 'stg' : 'tst'
 
-var containerRegistryUrl = 'https://${existingAzureContainerRegistry.properties.loginServer}'
+var containerRegistryUrl = 'https://${existingAzureContainerRegistry.properties.loginServer}' // Docker Hub example: 'https://index.docker.io/v1'
 var containerImageReference = 'DOCKER|${existingAzureContainerRegistry.properties.loginServer}/${ghostContainerName}'
 
 var webAppName = '${applicationNamePrefix}-web-${environmentCode}-${uniqueString(resourceGroup().id)}'
@@ -311,13 +306,13 @@ module ghostWebAppSettings 'modules/ghostWebAppSettings.bicep' = {
   }
 }
 
-module webAppSettingsSleep 'modules/sleep-script.bicep' = {
+module webAppSettingsSleep 'modules/sleep.bicep' = {
   name: 'webAppSettingsSleep'
   dependsOn: [
     ghostWebAppSettings
   ]
   params: {
-    time: '300'
+    time: '180'
   }
 }
 
@@ -414,12 +409,15 @@ module faStorageAccount 'modules/faStorageAccount.bicep' = {
 }
 
 // Sleep
-module sleep 'modules/sleep-script.bicep' = {
+module sleep 'modules/sleep.bicep' = {
   name: 'faStorageAccountSleepDeploy'
   scope: resourceGroup(faResourceGroup)
   dependsOn: [
     faStorageAccount
   ]
+  params: {
+    time: '120'
+  }
 }
 
 // Azure AD application for Function authentication
