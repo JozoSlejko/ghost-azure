@@ -416,6 +416,7 @@ module faStorageAccount 'modules/faStorageAccount.bicep' = {
 // Sleep
 module sleep 'modules/sleep-script.bicep' = {
   name: 'faStorageAccountSleepDeploy'
+  scope: resourceGroup(faResourceGroup)
   dependsOn: [
     faStorageAccount
   ]
