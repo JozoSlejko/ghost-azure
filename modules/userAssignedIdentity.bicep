@@ -18,3 +18,6 @@ output msiResourceId string = userMsi.id
 
 @description('The principal ID of the user assigned identity')
 output msiPrincipalId string = userMsi.properties.principalId
+
+@description('The Client ID of the user assigned identity')
+output msiClientId string = userMsi.properties.clientId

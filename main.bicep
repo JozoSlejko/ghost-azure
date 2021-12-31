@@ -279,7 +279,9 @@ module webApp './modules/webApp.bicep' = {
     webAppName: webAppName
     appServicePlanId: appServicePlan.outputs.id
     webUserAssignedIdentityId: webAppUserAssignedIdentity.outputs.msiResourceId
+    acrUserManagedIdentityClientID: webAppUserAssignedIdentity.outputs.msiClientId
     slotWebUserAssignedIdentityId: slotEnabled ? slotWebAppUserAssignedIdentity.outputs.msiResourceId : ''
+    slotAcrUserManagedIdentityClientID: slotEnabled ? slotWebAppUserAssignedIdentity.outputs.msiClientId : ''
     containerImageReference: containerImageReference
     storageAccountName: storageAccount.outputs.name
     slotStorageAccountName: slotEnabled ? slotStorageAccount.outputs.name : ''

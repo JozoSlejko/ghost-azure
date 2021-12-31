@@ -45,6 +45,10 @@ param webUserAssignedIdentityId string
 
 param slotWebUserAssignedIdentityId string = ''
 
+param acrUserManagedIdentityClientID string
+
+param slotAcrUserManagedIdentityClientID string = ''
+
 // var containerImageReference = 'DOCKER|${containerRegistryUrl}/${ghostContainerImage}'
 
 var storageAccountAccessKey = listKeys(existingStorageAccount.id, existingStorageAccount.apiVersion).keys[0].value
@@ -76,11 +80,14 @@ resource webApp 'Microsoft.Web/sites@2021-01-15' = {
     httpsOnly: true
     enabled: true
     reserved: true
+    keyVaultReferenceIdentity: webUserAssignedIdentityId
     siteConfig: {
       http20Enabled: true
       httpLoggingEnabled: true
       minTlsVersion: '1.2'
       ftpsState: 'Disabled'
+      acrUseManagedIdentityCreds: true
+      acrUserManagedIdentityID: acrUserManagedIdentityClientID
       linuxFxVersion: containerImageReference
       alwaysOn: true
       use32BitWorkerProcess: false
@@ -172,11 +179,14 @@ resource webAppStaging 'Microsoft.Web/sites/slots@2021-02-01' = if (slotEnabled)
     httpsOnly: true
     enabled: true
     reserved: true
+    keyVaultReferenceIdentity: slotWebUserAssignedIdentityId
     siteConfig: {
       http20Enabled: true
       httpLoggingEnabled: true
       minTlsVersion: '1.2'
       ftpsState: 'Disabled'
+      acrUseManagedIdentityCreds: true
+      acrUserManagedIdentityID: slotAcrUserManagedIdentityClientID
       linuxFxVersion: containerImageReference
       alwaysOn: true
       use32BitWorkerProcess: false
