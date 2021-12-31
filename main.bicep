@@ -166,19 +166,27 @@ module slotWebAppUserAssignedIdentity 'modules/userAssignedIdentity.bicep' = if 
   }
 }
 
+// var userAssignedIdentities = concat(array(webAppUserAssignedIdentity.outputs.msiPrincipalId), slotEnabled ? array(slotWebAppUserAssignedIdentity.outputs.msiPrincipalId) : any(null))
+
 module acrRoleAssignment 'modules/roleAssignment.bicep' = {
   name: 'acrRoleAssignmentDeploy'
+  scope: resourceGroup(acrRgName)
   params: {
     principalId: webAppUserAssignedIdentity.outputs.msiPrincipalId
     roleDefinitionIdOrName: 'AcrPull'
+    resourceGroupName: acrRgName
+    principalType: 'ServicePrincipal'
   }
 }
 
 module slotAcrRoleAssignment 'modules/roleAssignment.bicep' = if (slotEnabled == 'Yes') {
   name: 'slotAcrRoleAssignmentDeploy'
+  scope: resourceGroup(acrRgName)
   params: {
     principalId: slotWebAppUserAssignedIdentity.outputs.msiPrincipalId
     roleDefinitionIdOrName: 'AcrPull'
+    resourceGroupName: acrRgName
+    principalType: 'ServicePrincipal'
   }
 }
 
@@ -254,6 +262,10 @@ module applicationInsights './modules/applicationInsights.bicep' = {
 
 module webApp './modules/webApp.bicep' = {
   name: 'webAppDeploy'
+  dependsOn: [
+    acrRoleAssignment
+    slotAcrRoleAssignment
+  ]
   params: {
     tags: tags
     slotEnabled: slotEnabled
