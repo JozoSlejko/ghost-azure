@@ -114,6 +114,9 @@ var environmentConfigurationMap = {
       sku: {
         name: 'GP_Gen5_2'
       }
+      backup: {
+        geoRedundantBackup: 'Enabled'
+      }
     }
     logAnalyticsWorkspace: {
       sku: {
@@ -135,6 +138,9 @@ var environmentConfigurationMap = {
     mySqlServer: {
       sku: {
         name: 'B_Gen5_1'
+      }
+      backup: {
+        geoRedundantBackup: 'Disabled'
       }
     }
     logAnalyticsWorkspace: {
@@ -158,7 +164,7 @@ module webAppUserAssignedIdentity 'modules/userAssignedIdentity.bicep' = {
   }
 }
 
-module slotWebAppUserAssignedIdentity 'modules/userAssignedIdentity.bicep' = if (slotEnabled == 'Yes') {
+module slotWebAppUserAssignedIdentity 'modules/userAssignedIdentity.bicep' = if (slotEnabled) {
   name: 'slotWebAppUserAssignedIdentityDeploy'
   params: {
     name: '${webAppName}-${slotName}'
@@ -179,7 +185,7 @@ module acrRoleAssignment 'modules/roleAssignment.bicep' = {
   }
 }
 
-module slotAcrRoleAssignment 'modules/roleAssignment.bicep' = if (slotEnabled == 'Yes') {
+module slotAcrRoleAssignment 'modules/roleAssignment.bicep' = if (slotEnabled) {
   name: 'slotAcrRoleAssignmentDeploy'
   scope: resourceGroup(acrRgName)
   params: {
@@ -212,7 +218,7 @@ module storageAccount 'modules/storageAccount.bicep' = {
   }
 }
 
-module slotStorageAccount 'modules/storageAccount.bicep' = if (slotEnabled == 'Yes') {
+module slotStorageAccount 'modules/storageAccount.bicep' = if (slotEnabled) {
   name: 'slotStorageAccountDeploy'
   params: {
     tags: tags
@@ -347,10 +353,11 @@ module mySQLServer 'modules/mySQLServer.bicep' = {
     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
     mySQLServerName: mySQLServerName
     mySQLServerSku: environmentConfigurationMap[environmentName].mySqlServer.sku.name
+    geoRedundantBackup: environmentConfigurationMap[environmentName].mySqlServer.backup.geoRedundantBackup
   }
 }
 
-module slotMySQLServer 'modules/mySQLServer.bicep' = if (slotEnabled == 'Yes') {
+module slotMySQLServer 'modules/mySQLServer.bicep' = if (slotEnabled) {
   name: 'slotMySQLServerDeploy'
   params: {
     tags: tags
@@ -360,6 +367,7 @@ module slotMySQLServer 'modules/mySQLServer.bicep' = if (slotEnabled == 'Yes') {
     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
     mySQLServerName: slotMySQLServerName
     mySQLServerSku: environmentConfigurationMap[environmentName].mySqlServer.sku.name
+    geoRedundantBackup: environmentConfigurationMap[environmentName].mySqlServer.backup.geoRedundantBackup
   }
 }
 
