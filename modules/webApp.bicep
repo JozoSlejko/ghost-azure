@@ -1,5 +1,3 @@
-targetScope = 'resourceGroup'
-
 param tags object = {}
 
 @description('Enable the additional Web App slot.')
@@ -18,8 +16,16 @@ param appServicePlanId string
 @description('Log Analytics workspace id to use for diagnostics settings')
 param logAnalyticsWorkspaceId string
 
+/*
+@description('Azure container registry url')
+param containerRegistryUrl string
+
 @description('Ghost container full image name and tag')
 param ghostContainerImage string
+*/
+
+@description('Container image reference')
+param containerImageReference string
 
 @description('Storage account name to store Ghost content files')
 param storageAccountName string
@@ -35,7 +41,15 @@ param containerMountPath string
 
 param slotName string
 
-var containerImageReference = 'DOCKER|${ghostContainerImage}'
+param webUserAssignedIdentityId string
+
+param slotWebUserAssignedIdentityId string = ''
+
+param acrUserManagedIdentityClientID string
+
+param slotAcrUserManagedIdentityClientID string = ''
+
+// var containerImageReference = 'DOCKER|${containerRegistryUrl}/${ghostContainerImage}'
 
 var storageAccountAccessKey = listKeys(existingStorageAccount.id, existingStorageAccount.apiVersion).keys[0].value
 
@@ -55,7 +69,10 @@ resource webApp 'Microsoft.Web/sites@2021-01-15' = {
   tags: tags
   kind: 'app,linux,container'
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${webUserAssignedIdentityId}' : {}
+    }
   }
   properties: {
     clientAffinityEnabled: false
@@ -63,11 +80,14 @@ resource webApp 'Microsoft.Web/sites@2021-01-15' = {
     httpsOnly: true
     enabled: true
     reserved: true
+    keyVaultReferenceIdentity: webUserAssignedIdentityId
     siteConfig: {
       http20Enabled: true
       httpLoggingEnabled: true
       minTlsVersion: '1.2'
       ftpsState: 'Disabled'
+      acrUseManagedIdentityCreds: true
+      acrUserManagedIdentityID: acrUserManagedIdentityClientID
       linuxFxVersion: containerImageReference
       alwaysOn: true
       use32BitWorkerProcess: false
@@ -148,7 +168,10 @@ resource webAppStaging 'Microsoft.Web/sites/slots@2021-02-01' = if (slotEnabled)
   tags: tags
   kind: 'app,linux,container'
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${slotWebUserAssignedIdentityId}' : {}
+    }
   }
   properties: {
     clientAffinityEnabled: false
@@ -156,11 +179,14 @@ resource webAppStaging 'Microsoft.Web/sites/slots@2021-02-01' = if (slotEnabled)
     httpsOnly: true
     enabled: true
     reserved: true
+    keyVaultReferenceIdentity: slotWebUserAssignedIdentityId
     siteConfig: {
       http20Enabled: true
       httpLoggingEnabled: true
       minTlsVersion: '1.2'
       ftpsState: 'Disabled'
+      acrUseManagedIdentityCreds: true
+      acrUserManagedIdentityID: slotAcrUserManagedIdentityClientID
       linuxFxVersion: containerImageReference
       alwaysOn: true
       use32BitWorkerProcess: false
@@ -238,10 +264,10 @@ resource stgWebAppDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-
 
 output name string = webApp.name
 output hostName string = webApp.properties.hostNames[0]
-output principalId string = webApp.identity.principalId
+// output principalId string = webApp.identity.principalId
 
 output stagingName string = slotEnabled ? webAppStaging.name : ''
 output stagingHostName string = slotEnabled ? webAppStaging.properties.hostNames[0] : ''
-output stagingPrincipalId string = slotEnabled ? webAppStaging.identity.principalId : ''
+// output stagingPrincipalId string = slotEnabled ? webAppStaging.identity.principalId : ''
 
-output principalIds array = slotEnabled ? concat(array(webApp.identity.principalId), array(webAppStaging.identity.principalId)) : array(webApp.identity.principalId)
+// output principalIds array = slotEnabled ? concat(array(webApp.identity.principalId), array(webAppStaging.identity.principalId)) : array(webApp.identity.principalId)

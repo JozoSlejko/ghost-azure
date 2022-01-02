@@ -42,7 +42,6 @@ resource frontDoor 'Microsoft.Network/frontDoors@2020-05-01' = {
             }
           ]
           acceptedProtocols: [
-            'Http'
             'Https'
           ]
           patternsToMatch: [

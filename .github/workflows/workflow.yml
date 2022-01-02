@@ -11,7 +11,7 @@ env:
   AZURE_PROD_RESOURCEGROUP_NAME: rg-ghost-prd-01
   APP_NAME_PREFIX: ghost
   SLOT_ENABLED: 'No'
-  GHOST_CONTAINER: ghost:4.29.0-alpine
+  GHOST_CONTAINER: 'ghost:4.32.0-alpine'
   AZURE_FUNCTIONAPP_PACKAGE_PATH: 'function'
   AAD_TENANT_ID: '82850fa2-55e9-4b75-bd6b-98c6cc219872'
   DEV_SP_ID: '28bdb590-552f-4919-b983-305caab5111a'
@@ -85,6 +85,7 @@ jobs:
     needs: preview-dev
     outputs:
       endpointHostName: ${{ steps.deploy.outputs.endpointHostName }}
+      slotWebAppHostName: ${{ steps.deploy.outputs.slotWebAppHostName }}
       faName: ${{ steps.deploy.outputs.faName }}
       faHostName: ${{ steps.deploy.outputs.faHostName }}
     steps:
@@ -143,10 +144,6 @@ jobs:
         app-name: ${{needs.deploy-dev.outputs.faName}}
         package: './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
         respect-funcignore: true
-    - name: 'Sleep for 1 min(s)'
-      shell: bash
-      run: sleep 60s
-
 
   # Run the dev/test smoke test
   smoke-test:
@@ -157,7 +154,7 @@ jobs:
     - run: |
         $container = New-PesterContainer `
           -Path 'tests/Website.Tests.ps1' `
-          -Data @{ HostName = '${{needs.deploy-dev.outputs.endpointHostName}}'; FunctionHostName = '${{needs.deploy-dev.outputs.faHostName}}' }
+          -Data @{ HostName = '${{needs.deploy-dev.outputs.endpointHostName}}'; SlotHostName = '${{needs.deploy-dev.outputs.slotWebAppHostName}}'; FunctionHostName = '${{needs.deploy-dev.outputs.faHostName}}' }
         Invoke-Pester `
           -Container $container `
           -CI

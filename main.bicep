@@ -1,5 +1,3 @@
-targetScope = 'resourceGroup'
-
 @description('The name of the environment. This must be Development or Production.')
 @allowed([
   'Development'
@@ -10,17 +8,17 @@ param environmentName string
 @description('Azure AD Tenant ID.')
 param aadTenantId string
 
-@description('Service principal ID.')
+@description('Deployment Service principal ID - used by AAD App Deployment Script')
 param spId string
 
-@description('Service principal secret.')
+@description('Deployment Service principal secret - used by AAD App Deployment Script')
 @secure()
 param spPassword string
 
 @description('Prefix to use when creating the resources in this deployment.')
 param applicationNamePrefix string
 
-@description('Azure AD Application Secret.')
+@description('Azure AD Application Secret - used by the Function App External Authentication')
 @secure()
 param appPassword string
 
@@ -39,16 +37,22 @@ param location string = resourceGroup().location
 param databasePassword string
 
 @description('Ghost container full image name and tag')
-param ghostContainerName string = 'ghost:4.29.0-alpine'
+param ghostContainerName string = 'ghost:4.32.0-alpine'
 
-@description('Container registry where the image is hosted')
-param containerRegistryUrl string = 'https://index.docker.io/v1'
+@description('Azure Container registry name where the image is hosted')
+param azureContainerRegistryName string = 'jacrtst01'
+
+@description('Azure Container registry resource group')
+param acrRgName string = 'j-acr-tst-01'
 
 param baseTime string = utcNow('yyyy-MM-dd')
 
 var environmentCode = environmentName == 'Production' ? 'prd' : 'dev'
 
 var slotName = environmentName == 'Production' ? 'stg' : 'tst'
+
+var containerRegistryUrl = 'https://${existingAzureContainerRegistry.properties.loginServer}' // Docker Hub example: 'https://index.docker.io/v1'
+var containerImageReference = 'DOCKER|${existingAzureContainerRegistry.properties.loginServer}/${ghostContainerName}'
 
 var webAppName = '${applicationNamePrefix}-web-${environmentCode}-${uniqueString(resourceGroup().id)}'
 var appServicePlanName = '${applicationNamePrefix}-asp-${environmentCode}-${uniqueString(resourceGroup().id)}'
@@ -74,9 +78,6 @@ var databaseName = 'ghost'
 var ghostContentFileShareName = 'contentfiles'
 var ghostContentFilesMountPath = '/var/lib/ghost/content_files'
 
-var siteUrl = 'https://${frontDoorName}.azurefd.net'
-var slotSiteUrl = 'https://${webApp.outputs.stagingHostName}'
-
 var frontDoorName = '${applicationNamePrefix}-fd-${environmentCode}-${uniqueString(resourceGroup().id)}'
 var wafPolicyName = '${applicationNamePrefix}waf${uniqueString(resourceGroup().id)}'
 
@@ -89,7 +90,7 @@ var tags = {
 
 var slotEnabled = (webSlotEnabled == 'Yes') ? true : false
 
-var servicePrincipalIds = concat(webApp.outputs.principalIds, array(function.outputs.faPrincipalId))
+var servicePrincipalIds = concat(array(webAppUserAssignedIdentity.outputs.msiPrincipalId), array(slotWebAppUserAssignedIdentity.outputs.msiPrincipalId), array(function.outputs.faPrincipalId))
 
 @description('Define the SKUs for each component based on the environment type.')
 var environmentConfigurationMap = {
@@ -107,6 +108,9 @@ var environmentConfigurationMap = {
     mySqlServer: {
       sku: {
         name: 'GP_Gen5_2'
+      }
+      backup: {
+        geoRedundantBackup: 'Enabled'
       }
     }
     logAnalyticsWorkspace: {
@@ -130,12 +134,60 @@ var environmentConfigurationMap = {
       sku: {
         name: 'B_Gen5_1'
       }
+      backup: {
+        geoRedundantBackup: 'Disabled'
+      }
     }
     logAnalyticsWorkspace: {
       sku: {
         name: 'PerGB2018'
       }
     }
+  }
+}
+
+resource existingAzureContainerRegistry 'Microsoft.ContainerRegistry/registries@2021-09-01' existing = {
+  name: azureContainerRegistryName
+  scope: resourceGroup(acrRgName)
+}
+
+module webAppUserAssignedIdentity 'modules/userAssignedIdentity.bicep' = {
+  name: 'webAppUserAssignedIdentityDeploy'
+  params: {
+    name: webAppName
+    tags: tags
+  }
+}
+
+module slotWebAppUserAssignedIdentity 'modules/userAssignedIdentity.bicep' = if (slotEnabled) {
+  name: 'slotWebAppUserAssignedIdentityDeploy'
+  params: {
+    name: '${webAppName}-${slotName}'
+    tags: tags
+  }
+}
+
+// var userAssignedIdentities = concat(array(webAppUserAssignedIdentity.outputs.msiPrincipalId), slotEnabled ? array(slotWebAppUserAssignedIdentity.outputs.msiPrincipalId) : any(null))
+
+module acrRoleAssignment 'modules/roleAssignment.bicep' = {
+  name: 'acrRoleAssignmentDeploy'
+  scope: resourceGroup(acrRgName)
+  params: {
+    principalId: webAppUserAssignedIdentity.outputs.msiPrincipalId
+    roleDefinitionIdOrName: 'AcrPull'
+    resourceGroupName: acrRgName
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module slotAcrRoleAssignment 'modules/roleAssignment.bicep' = if (slotEnabled) {
+  name: 'slotAcrRoleAssignmentDeploy'
+  scope: resourceGroup(acrRgName)
+  params: {
+    principalId: slotWebAppUserAssignedIdentity.outputs.msiPrincipalId
+    roleDefinitionIdOrName: 'AcrPull'
+    resourceGroupName: acrRgName
+    principalType: 'ServicePrincipal'
   }
 }
 
@@ -161,7 +213,7 @@ module storageAccount 'modules/storageAccount.bicep' = {
   }
 }
 
-module slotStorageAccount 'modules/storageAccount.bicep' = if (slotEnabled == 'Yes') {
+module slotStorageAccount 'modules/storageAccount.bicep' = if (slotEnabled) {
   name: 'slotStorageAccountDeploy'
   params: {
     tags: tags
@@ -188,44 +240,6 @@ module keyVault './modules/keyVault.bicep' = {
   }
 }
 
-module webApp './modules/webApp.bicep' = {
-  name: 'webAppDeploy'
-  params: {
-    tags: tags
-    slotEnabled: slotEnabled
-    slotName: slotName
-    webAppName: webAppName
-    appServicePlanId: appServicePlan.outputs.id
-    ghostContainerImage: ghostContainerName
-    storageAccountName: storageAccount.outputs.name
-    slotStorageAccountName: slotEnabled ? slotStorageAccount.outputs.name : ''
-    fileShareName: ghostContentFileShareName
-    containerMountPath: ghostContentFilesMountPath
-    location: location
-    logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
-  }
-}
-
-module webAppSettings 'modules/webAppSettings.bicep' = {
-  name: 'webAppSettingsDeploy'
-  params: {
-    slotEnabled: slotEnabled
-    slotName: slotName
-    webAppName: webApp.outputs.name
-    applicationInsightsConnectionString: applicationInsights.outputs.ConnectionString
-    applicationInsightsInstrumentationKey: applicationInsights.outputs.InstrumentationKey
-    containerRegistryUrl: containerRegistryUrl
-    containerMountPath: ghostContentFilesMountPath
-    databaseHostFQDN: mySQLServer.outputs.fullyQualifiedDomainName
-    slotDatabaseHostFQDN: slotMySQLServer.outputs.fullyQualifiedDomainName
-    databaseLogin: '${databaseLogin}@${mySQLServer.outputs.name}'
-    databasePasswordSecretUri: keyVault.outputs.databasePasswordSecretUri
-    databaseName: databaseName
-    siteUrl: siteUrl
-    slotSiteUrl: slotSiteUrl
-  }
-}
-
 module appServicePlan './modules/appServicePlan.bicep' = {
   name: 'appServicePlanDeploy'
   params: {
@@ -247,6 +261,85 @@ module applicationInsights './modules/applicationInsights.bicep' = {
   }
 }
 
+module webApp './modules/webApp.bicep' = {
+  name: 'webAppDeploy'
+  dependsOn: [
+    acrRoleAssignment
+    slotAcrRoleAssignment
+  ]
+  params: {
+    tags: tags
+    slotEnabled: slotEnabled
+    slotName: slotName
+    webAppName: webAppName
+    appServicePlanId: appServicePlan.outputs.id
+    webUserAssignedIdentityId: webAppUserAssignedIdentity.outputs.msiResourceId
+    acrUserManagedIdentityClientID: webAppUserAssignedIdentity.outputs.msiClientId
+    slotWebUserAssignedIdentityId: slotEnabled ? slotWebAppUserAssignedIdentity.outputs.msiResourceId : ''
+    slotAcrUserManagedIdentityClientID: slotEnabled ? slotWebAppUserAssignedIdentity.outputs.msiClientId : ''
+    containerImageReference: containerImageReference
+    storageAccountName: storageAccount.outputs.name
+    slotStorageAccountName: slotEnabled ? slotStorageAccount.outputs.name : ''
+    fileShareName: ghostContentFileShareName
+    containerMountPath: ghostContentFilesMountPath
+    location: location
+    logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
+  }
+}
+
+module ghostWebAppSettings 'modules/ghostWebAppSettings.bicep' = {
+  name: 'ghostWebAppSettingsDeploy'
+  params: {
+    environment: environmentName
+    slotEnabled: slotEnabled
+    slotName: slotName
+    webAppName: webApp.outputs.name
+    containerRegistryUrl: containerRegistryUrl
+    containerMountPath: ghostContentFilesMountPath
+    databaseHostFQDN: mySQLServer.outputs.fullyQualifiedDomainName
+    slotDatabaseHostFQDN: slotEnabled ? slotMySQLServer.outputs.fullyQualifiedDomainName : ''
+    databaseLogin: '${databaseLogin}@${mySQLServer.outputs.name}'
+    databasePasswordSecretUri: keyVault.outputs.databasePasswordSecretUri
+    databaseName: databaseName
+    siteUrl: 'https://${frontDoorName}.azurefd.net'
+    slotSiteUrl: slotEnabled ? 'https://${webApp.outputs.stagingHostName}' : ''
+  }
+}
+
+module webAppSettingsSleep 'modules/sleep.bicep' = {
+  name: 'webAppSettingsSleep'
+  dependsOn: [
+    ghostWebAppSettings
+  ]
+  params: {
+    time: '180'
+  }
+}
+
+module allWebAppSettings 'modules/webAppSettings.bicep' = {
+  name: 'allWebAppSettingsDeploy'
+  dependsOn: [
+    webAppSettingsSleep
+  ]
+  params: {
+    environment: environmentName
+    slotEnabled: slotEnabled
+    slotName: slotName
+    webAppName: webApp.outputs.name
+    applicationInsightsConnectionString: applicationInsights.outputs.ConnectionString
+    applicationInsightsInstrumentationKey: applicationInsights.outputs.InstrumentationKey
+    containerRegistryUrl: containerRegistryUrl
+    containerMountPath: ghostContentFilesMountPath
+    databaseHostFQDN: mySQLServer.outputs.fullyQualifiedDomainName
+    slotDatabaseHostFQDN: slotEnabled ? slotMySQLServer.outputs.fullyQualifiedDomainName : ''
+    databaseLogin: '${databaseLogin}@${mySQLServer.outputs.name}'
+    databasePasswordSecretUri: keyVault.outputs.databasePasswordSecretUri
+    databaseName: databaseName
+    siteUrl: 'https://${frontDoorName}.azurefd.net'
+    slotSiteUrl: slotEnabled ? 'https://${webApp.outputs.stagingHostName}' : ''
+  }
+}
+
 module mySQLServer 'modules/mySQLServer.bicep' = {
   name: 'mySQLServerDeploy'
   params: {
@@ -257,6 +350,21 @@ module mySQLServer 'modules/mySQLServer.bicep' = {
     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
     mySQLServerName: mySQLServerName
     mySQLServerSku: environmentConfigurationMap[environmentName].mySqlServer.sku.name
+    geoRedundantBackup: environmentConfigurationMap[environmentName].mySqlServer.backup.geoRedundantBackup
+  }
+}
+
+module slotMySQLServer 'modules/mySQLServer.bicep' = if (slotEnabled) {
+  name: 'slotMySQLServerDeploy'
+  params: {
+    tags: tags
+    administratorLogin: databaseLogin
+    administratorPassword: databasePassword
+    location: location
+    logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
+    mySQLServerName: slotMySQLServerName
+    mySQLServerSku: environmentConfigurationMap[environmentName].mySqlServer.sku.name
+    geoRedundantBackup: environmentConfigurationMap[environmentName].mySqlServer.backup.geoRedundantBackup
   }
 }
 
@@ -300,7 +408,6 @@ module faAppServicePlan './modules/appServicePlan.bicep' = {
   }
 }
 
-
 // Storage account
 module faStorageAccount 'modules/faStorageAccount.bicep' = {
   name: 'faStorageAccountDeploy'
@@ -315,11 +422,15 @@ module faStorageAccount 'modules/faStorageAccount.bicep' = {
 }
 
 // Sleep
-module sleep 'modules/sleep-script.bicep' = {
-  name: 'sleepDeploy'
+module sleep 'modules/sleep.bicep' = {
+  name: 'faStorageAccountSleepDeploy'
+  scope: resourceGroup(faResourceGroup)
   dependsOn: [
     faStorageAccount
   ]
+  params: {
+    time: '120'
+  }
 }
 
 // Azure AD application for Function authentication
@@ -371,9 +482,7 @@ module functionAppSettings './modules/functionAppSettings.bicep' = {
 
 // Outputs
 
-output webAppName string = webApp.outputs.name
-output webAppPrincipalId string = webApp.outputs.principalId
-output webAppHostName string = webApp.outputs.hostName
+output slotWebAppHostName string = slotEnabled ? webApp.outputs.stagingHostName : ''
 output endpointHostName string = frontDoor.outputs.frontendEndpointHostName
 output faName string = function.outputs.name
 output faHostName string = function.outputs.hostName

@@ -25,6 +25,8 @@ param location string = resourceGroup().location
 @description('Log Analytics workspace id to use for diagnostics settings')
 param logAnalyticsWorkspaceId string
 
+param geoRedundantBackup string
+
 resource mySQLServer 'Microsoft.DBforMySQL/servers@2017-12-01' = {
   name: mySQLServerName
   location: location
@@ -41,7 +43,7 @@ resource mySQLServer 'Microsoft.DBforMySQL/servers@2017-12-01' = {
     minimalTlsVersion: 'TLS1_2'
     storageProfile: {
       backupRetentionDays: 15
-      geoRedundantBackup: 'Enabled'
+      geoRedundantBackup: geoRedundantBackup
     }
   }
 }

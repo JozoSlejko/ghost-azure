@@ -7,10 +7,6 @@ param slotName string = ''
 
 param webAppName string
 
-param applicationInsightsInstrumentationKey string
-
-param applicationInsightsConnectionString string
-
 @description('MySQL server hostname')
 param databaseHostFQDN string
 
@@ -50,26 +46,13 @@ resource webAppSettings 'Microsoft.Web/sites/config@2021-01-15' = {
   parent: existingWebApp
   name: 'appsettings'
   properties: {
-    // Application Insights settings
-    APPINSIGHTS_INSTRUMENTATIONKEY: applicationInsightsInstrumentationKey
-    APPINSIGHTS_PROFILERFEATURE_VERSION : '1.0.0'
-    APPINSIGHTS_SNAPSHOTFEATURE_VERSION : '1.0.0'
-    APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsightsConnectionString
-    APPLICATIONINSIGHTS_CONFIGURATION_CONTENT: ''
-    ApplicationInsightsAgent_EXTENSION_VERSION: '~3'
-    InstrumentationEngine_EXTENSION_VERSION: 'disabled'
-    SnapshotDebugger_EXTENSION_VERSION: 'disabled'
-    XDT_MicrosoftApplicationInsights_BaseExtensions: 'dsiabled'
-    XDT_MicrosoftApplicationInsights_Mode: 'recommended'
-    XDT_MicrosoftApplicationInsights_PreemptSdk: 'disabled'
-    // General settings
     WEBSITES_ENABLE_APP_SERVICE_STORAGE: 'false'
     DOCKER_REGISTRY_SERVER_URL: containerRegistryUrl
     // Ghost-specific settings
     NODE_ENV: toLower(environment)
     GHOST_CONTENT: containerMountPath
     paths__contentPath: containerMountPath
-    privacy_useUpdateCheck: 'false'
+    privacy_useUpdateCheck: 'false' // disable Ghost update check
     url: siteUrl
     database__client: 'mysql'
     database__connection__host: databaseHostFQDN
@@ -85,26 +68,13 @@ resource slotWebAppSettings 'Microsoft.Web/sites/slots/config@2021-02-01' = if (
   parent: existingSlotWebApp
   name: 'appsettings'
   properties: {
-    // Application Insights settings
-    APPINSIGHTS_INSTRUMENTATIONKEY: applicationInsightsInstrumentationKey
-    APPINSIGHTS_PROFILERFEATURE_VERSION : '1.0.0'
-    APPINSIGHTS_SNAPSHOTFEATURE_VERSION : '1.0.0'
-    APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsightsConnectionString
-    APPLICATIONINSIGHTS_CONFIGURATION_CONTENT: ''
-    ApplicationInsightsAgent_EXTENSION_VERSION: '~3'
-    InstrumentationEngine_EXTENSION_VERSION: 'disabled'
-    SnapshotDebugger_EXTENSION_VERSION: 'disabled'
-    XDT_MicrosoftApplicationInsights_BaseExtensions: 'dsiabled'
-    XDT_MicrosoftApplicationInsights_Mode: 'recommended'
-    XDT_MicrosoftApplicationInsights_PreemptSdk: 'disabled'
-    // General settings
     WEBSITES_ENABLE_APP_SERVICE_STORAGE: 'false'
     DOCKER_REGISTRY_SERVER_URL: containerRegistryUrl
     // Ghost-specific settings
     NODE_ENV: toLower(environment)
     GHOST_CONTENT: containerMountPath
     paths__contentPath: containerMountPath
-    privacy_useUpdateCheck: 'false'
+    privacy_useUpdateCheck: 'false' // disable Ghost update check
     url: slotSiteUrl
     database__client: 'mysql'
     database__connection__host: slotDatabaseHostFQDN
