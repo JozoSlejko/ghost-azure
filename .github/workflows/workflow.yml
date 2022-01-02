@@ -4,7 +4,7 @@ concurrency: ghost-azure
 on: 
   push:
     branches: 
-      - 'feature/acr-image'
+      - 'main'
 
 env:
   AZURE_DEV_RESOURCEGROUP_NAME: rg-ghost-dev-01
