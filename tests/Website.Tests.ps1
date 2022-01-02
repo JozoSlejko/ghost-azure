@@ -42,7 +42,7 @@ Describe "Check Ghost Function App" {
   It "Redirects to AAD login" {
     $request = Invoke-WebRequest "https://$FunctionHostName/api/deleteGhostPosts"
     $request.StatusCode |
-    Should -Be 302 -Because "unauthenticated redirect"
+    Should -Be 200 -Because "the function works"
   }
 
 }
