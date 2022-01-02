@@ -36,14 +36,13 @@ Describe 'Check Ghost Website Slot' {
         Should -Be 200 -Because "the website works"
     }
 }
-# Describe "Check Ghost Function App" {
-  
-#   It "Redirects to AAD login" {
-#     $request = [System.Net.WebRequest]::Create("https://$FunctionHostName/api/deleteGhostPosts")
-#     $request.AllowAutoRedirect = $true
-#     Start-Sleep -Seconds 300
-#     $request.GetResponse().StatusCode |
-#     Should -Be 302 -Because "unauthenticated redirect"
-#   }
 
-# }
+Describe "Check Ghost Function App" {
+  
+  It "Redirects to AAD login" {
+    $request = Invoke-WebRequest "https://$FunctionHostName/api/deleteGhostPosts"
+    $request.StatusCode |
+    Should -Be 302 -Because "unauthenticated redirect"
+  }
+
+}
