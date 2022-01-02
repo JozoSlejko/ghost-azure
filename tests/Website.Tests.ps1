@@ -16,7 +16,8 @@ Describe 'Check Ghost Website' {
       $request = [System.Net.WebRequest]::Create("https://$HostName/")
       $request.AllowAutoRedirect = $true
       $request.GetResponse()
-      Start-Sleep -Seconds 180
+      $request.GetResponse()
+      Start-Sleep -Seconds 300
       $request.GetResponse().StatusCode |
         Should -Be 200 -Because "the website works"
     }
@@ -25,22 +26,15 @@ Describe 'Check Ghost Website' {
 
 Describe 'Check Ghost Website Slot' {
 
-  It 'Serves pages' {
-
-    if ($slotHostName -ne $null) {
+  It 'Serves pages' -Skip:($SlotHostName -eq $null)  {
       $request = [System.Net.WebRequest]::Create("https://$SlotHostName/")
       $request.AllowAutoRedirect = $true
       $request.GetResponse()
-      Start-Sleep -Seconds 180
+      $request.GetResponse()
+      Start-Sleep -Seconds 300
       $request.GetResponse().StatusCode |
-        Should -Be 200 -Because "the website works"  
-    }
-    else {
-      Write-Output "Slot is not enabled"
-    }
-    
+        Should -Be 200 -Because "the website works"
   }
-
 }
 
 # Describe "Check Ghost Function App" {
