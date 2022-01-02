@@ -26,7 +26,7 @@ Describe 'Check Ghost Website' {
 
 Describe 'Check Ghost Website Slot' {
 
-  It 'Serves pages' -Skip:($SlotHostName) {
+  It 'Serves pages' -Skip:($SlotHostName -eq '') {
       for ($i = 0; $i -lt 4; $i++) {
         Invoke-WebRequest "https://$SlotHostName/"
         Start-Sleep -Seconds 30
