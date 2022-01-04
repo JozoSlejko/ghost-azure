@@ -13,7 +13,7 @@ param wafPolicyName string
 @description('Log Analytics workspace id to use for diagnostics settings')
 param logAnalyticsWorkspaceId string
 
-@description('Web app to confire Front Door for')
+@description('Web app to configure Front Door for')
 param webAppName string
 
 var backendPool1Name = '${frontDoorName}-backendPool1'

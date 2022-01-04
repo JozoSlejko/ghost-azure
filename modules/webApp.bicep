@@ -271,3 +271,6 @@ output stagingHostName string = slotEnabled ? webAppStaging.properties.hostNames
 // output stagingPrincipalId string = slotEnabled ? webAppStaging.identity.principalId : ''
 
 // output principalIds array = slotEnabled ? concat(array(webApp.identity.principalId), array(webAppStaging.identity.principalId)) : array(webApp.identity.principalId)
+
+output hostNames array = slotEnabled ? concat(array(webApp.properties.hostNames[0]), array(webAppStaging.properties.hostNames[0])) : array(webApp.properties.hostNames[0])
+output hostIds array = slotEnabled ? concat(array(webApp.id), array(webAppStaging.id)) : array(webApp.id)

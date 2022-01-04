@@ -4,7 +4,7 @@ concurrency: ghost-azure
 on: 
   push:
     branches: 
-      - 'main'
+      - 'feature/fd-standard'
 
 env:
   AZURE_DEV_RESOURCEGROUP_NAME: rg-ghost-dev-01

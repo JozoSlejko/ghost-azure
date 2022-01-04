@@ -95,6 +95,7 @@ var servicePrincipalIds = concat(array(webAppUserAssignedIdentity.outputs.msiPri
 @description('Define the SKUs for each component based on the environment type.')
 var environmentConfigurationMap = {
   Production: {
+    environmentCode: 'prd'
     appServicePlan: {
       sku: {
         name: 'S1'
@@ -120,6 +121,7 @@ var environmentConfigurationMap = {
     }
   }
   Development: {
+    environmentCode: 'dev'
     appServicePlan: {
       sku: {
         name: 'S1'
@@ -166,8 +168,6 @@ module slotWebAppUserAssignedIdentity 'modules/userAssignedIdentity.bicep' = if 
     tags: tags
   }
 }
-
-// var userAssignedIdentities = concat(array(webAppUserAssignedIdentity.outputs.msiPrincipalId), slotEnabled ? array(slotWebAppUserAssignedIdentity.outputs.msiPrincipalId) : any(null))
 
 module acrRoleAssignment 'modules/roleAssignment.bicep' = {
   name: 'acrRoleAssignmentDeploy'
@@ -368,27 +368,24 @@ module slotMySQLServer 'modules/mySQLServer.bicep' = if (slotEnabled) {
   }
 }
 
-module slotMySQLServer 'modules/mySQLServer.bicep' = if (slotEnabled == 'Yes') {
-  name: 'slotMySQLServerDeploy'
-  params: {
-    tags: tags
-    administratorLogin: databaseLogin
-    administratorPassword: databasePassword
-    location: location
-    logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
-    mySQLServerName: slotMySQLServerName
-    mySQLServerSku: environmentConfigurationMap[environmentName].mySqlServer.sku.name
-  }
-}
+// module frontDoor 'modules/frontDoor.bicep' = {
+//   name: 'FrontDoorDeploy'
+//   params: {
+//     tags: tags
+//     frontDoorName: frontDoorName
+//     wafPolicyName: wafPolicyName
+//     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
+//     webAppName: webApp.outputs.name
+//   }
+// }
 
-module frontDoor 'modules/frontDoor.bicep' = {
+module frontDoor 'modules/fdStandard.bicep' = {
   name: 'FrontDoorDeploy'
   params: {
-    tags: tags
     frontDoorName: frontDoorName
-    wafPolicyName: wafPolicyName
+    hostIds: webApp.outputs.hostIds
+    hostNames: webApp.outputs.hostNames
     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
-    webAppName: webApp.outputs.name
   }
 }
 
@@ -470,7 +467,7 @@ module functionAppSettings './modules/functionAppSettings.bicep' = {
   params: {
     functionAppName: function.outputs.name
     storageAccountName: faStorageAccount.outputs.name
-    frontdoorHostName: frontDoor.outputs.frontendEndpointHostName
+    frontdoorHostName: frontDoor.outputs.frontDoorEndpointHostNames[0]
     appPasswordUri: keyVault.outputs.functionAppPasswordSecretUri
     applicationInsightsConnectionString: applicationInsights.outputs.ConnectionString
     applicationInsightsInstrumentationKey: applicationInsights.outputs.InstrumentationKey
@@ -483,6 +480,6 @@ module functionAppSettings './modules/functionAppSettings.bicep' = {
 // Outputs
 
 output slotWebAppHostName string = slotEnabled ? webApp.outputs.stagingHostName : ''
-output endpointHostName string = frontDoor.outputs.frontendEndpointHostName
+output endpointHostName string = frontDoor.outputs.frontDoorEndpointHostNames[0]
 output faName string = function.outputs.name
 output faHostName string = function.outputs.hostName
