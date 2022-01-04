@@ -269,6 +269,7 @@ module webApp './modules/webApp.bicep' = {
   ]
   params: {
     tags: tags
+    environment: environmentName
     slotEnabled: slotEnabled
     slotName: slotName
     webAppName: webAppName
@@ -277,57 +278,80 @@ module webApp './modules/webApp.bicep' = {
     acrUserManagedIdentityClientID: webAppUserAssignedIdentity.outputs.msiClientId
     slotWebUserAssignedIdentityId: slotEnabled ? slotWebAppUserAssignedIdentity.outputs.msiResourceId : ''
     slotAcrUserManagedIdentityClientID: slotEnabled ? slotWebAppUserAssignedIdentity.outputs.msiClientId : ''
+    containerRegistryUrl: containerRegistryUrl
     containerImageReference: containerImageReference
     storageAccountName: storageAccount.outputs.name
     slotStorageAccountName: slotEnabled ? slotStorageAccount.outputs.name : ''
     fileShareName: ghostContentFileShareName
     containerMountPath: ghostContentFilesMountPath
+    databaseHostFQDN: mySQLServer.outputs.fullyQualifiedDomainName
+    slotDatabaseHostFQDN: slotMySQLServer.outputs.fullyQualifiedDomainName
+    databaseLogin: '${databaseLogin}@${mySQLServer.outputs.name}'
+    databasePasswordSecretUri: keyVault.outputs.databasePasswordSecretUri
+    databaseName: databaseName
+    siteUrl: 'https://${webAppName}.azurefd.net'
+    slotSiteUrl: slotEnabled ? 'https://${webAppName}-${slotName}.azurefd.net' : ''
     location: location
     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
   }
 }
 
-module ghostWebAppSettings 'modules/ghostWebAppSettings.bicep' = {
-  name: 'ghostWebAppSettingsDeploy'
+// module ghostWebAppSettings 'modules/ghostWebAppSettings.bicep' = {
+//   name: 'ghostWebAppSettingsDeploy'
+//   params: {
+//     environment: environmentName
+//     slotEnabled: slotEnabled
+//     slotName: slotName
+//     webAppName: webApp.outputs.webNames[0]
+//     containerRegistryUrl: containerRegistryUrl
+//     containerMountPath: ghostContentFilesMountPath
+//     databaseHostFQDN: mySQLServer.outputs.fullyQualifiedDomainName
+//     slotDatabaseHostFQDN: slotEnabled ? slotMySQLServer.outputs.fullyQualifiedDomainName : ''
+//     databaseLogin: '${databaseLogin}@${mySQLServer.outputs.name}'
+//     databasePasswordSecretUri: keyVault.outputs.databasePasswordSecretUri
+//     databaseName: databaseName
+//     // siteUrl: 'https://${frontDoorName}.azurefd.net'
+//     // slotSiteUrl: slotEnabled ? 'https://${webApp.outputs.stagingHostName}' : ''
+//     siteUrl: 'https://${frontDoor.outputs.frontDoorEndpointHostNames[0].endpointHostName}'
+//     slotSiteUrl: slotEnabled ? 'https://${frontDoor.outputs.frontDoorEndpointHostNames[1].endpointHostName}' : ''
+//   }
+// }
+
+module wgetWebApp 'modules/wget.bicep' = {
+  name: 'wgetWebApp'
   params: {
-    environment: environmentName
-    slotEnabled: slotEnabled
-    slotName: slotName
-    webAppName: webApp.outputs.webNames[0]
-    containerRegistryUrl: containerRegistryUrl
-    containerMountPath: ghostContentFilesMountPath
-    databaseHostFQDN: mySQLServer.outputs.fullyQualifiedDomainName
-    slotDatabaseHostFQDN: slotEnabled ? slotMySQLServer.outputs.fullyQualifiedDomainName : ''
-    databaseLogin: '${databaseLogin}@${mySQLServer.outputs.name}'
-    databasePasswordSecretUri: keyVault.outputs.databasePasswordSecretUri
-    databaseName: databaseName
-    // siteUrl: 'https://${frontDoorName}.azurefd.net'
-    // slotSiteUrl: slotEnabled ? 'https://${webApp.outputs.stagingHostName}' : ''
-    siteUrl: 'https://${frontDoor.outputs.frontDoorEndpointHostNames[0].endpointHostName}'
-    slotSiteUrl: slotEnabled ? 'https://${frontDoor.outputs.frontDoorEndpointHostNames[1].endpointHostName}' : ''
+    link: 'https://${webApp.outputs.hostNames[0]}'
   }
 }
 
-module webAppSettingsSleep 'modules/sleep.bicep' = {
-  name: 'webAppSettingsSleep'
+module wgetSlotWebApp 'modules/wget.bicep' = {
+  name: 'wgetSlotWebApp'
+  params: {
+    link: 'https://${webApp.outputs.hostNames[1]}'
+  }
+}
+
+module webAppSleep 'modules/sleep.bicep' = {
+  name: 'webAppSleep'
   dependsOn: [
-    ghostWebAppSettings
+    wgetWebApp
+    wgetSlotWebApp
   ]
   params: {
-    time: '180'
+    time: '300'
   }
 }
 
 module allWebAppSettings 'modules/webAppSettings.bicep' = {
   name: 'allWebAppSettingsDeploy'
   dependsOn: [
-    webAppSettingsSleep
+    webAppSleep
   ]
   params: {
     environment: environmentName
     slotEnabled: slotEnabled
     slotName: slotName
-    webAppName: webApp.outputs.webNames[0]
+    webAppName: webAppName
     applicationInsightsConnectionString: applicationInsights.outputs.ConnectionString
     applicationInsightsInstrumentationKey: applicationInsights.outputs.InstrumentationKey
     containerRegistryUrl: containerRegistryUrl
@@ -339,8 +363,41 @@ module allWebAppSettings 'modules/webAppSettings.bicep' = {
     databaseName: databaseName
     // siteUrl: 'https://${frontDoorName}.azurefd.net'
     // slotSiteUrl: slotEnabled ? 'https://${webApp.outputs.stagingHostName}' : ''
-    siteUrl: 'https://${frontDoor.outputs.frontDoorEndpointHostNames[0].endpointHostName}'
-    slotSiteUrl: slotEnabled ? 'https://${frontDoor.outputs.frontDoorEndpointHostNames[1].endpointHostName}' : ''
+    // siteUrl: 'https://${frontDoor.outputs.frontDoorEndpointHostNames[0].endpointHostName}'
+    // slotSiteUrl: slotEnabled ? 'https://${frontDoor.outputs.frontDoorEndpointHostNames[1].endpointHostName}' : ''
+    siteUrl: 'https://${webAppName}.azurefd.net'
+    slotSiteUrl: slotEnabled ? 'https://${webAppName}-${slotName}.azurefd.net' : ''
+  }
+}
+
+module wgetWebApp2 'modules/wget.bicep' = {
+  name: 'wgetWebApp2'
+  dependsOn: [
+    allWebAppSettings
+  ]
+  params: {
+    link: 'https://${webApp.outputs.hostNames[0]}'
+  }
+}
+
+module wgetSlotWebApp2 'modules/wget.bicep' = {
+  name: 'wgetSlotWebApp2'
+  dependsOn: [
+    allWebAppSettings
+  ]
+  params: {
+    link: 'https://${webApp.outputs.hostNames[1]}'
+  }
+}
+
+module webAppSleep2 'modules/sleep.bicep' = {
+  name: 'webAppSleep2'
+  dependsOn: [
+    wgetWebApp2
+    wgetSlotWebApp2
+  ]
+  params: {
+    time: '300'
   }
 }
 
@@ -385,6 +442,9 @@ module slotMySQLServer 'modules/mySQLServer.bicep' = if (slotEnabled) {
 
 module frontDoor 'modules/fdStandard.bicep' = {
   name: 'frontDoorDeploy'
+  dependsOn: [
+    webAppSleep2
+  ]
   params: {
     frontDoorName: frontDoorName
     webNames: webApp.outputs.webNames

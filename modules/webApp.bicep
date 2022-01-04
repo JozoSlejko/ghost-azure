@@ -41,6 +41,32 @@ param acrUserManagedIdentityClientID string
 
 param slotAcrUserManagedIdentityClientID string = ''
 
+@description('Container registry to pull Ghost docker image')
+param containerRegistryUrl string
+
+param environment string
+
+@description('Website URL to autogenerate links by Ghost')
+param siteUrl string
+
+@description('Staging Website URL to autogenerate links by Ghost')
+param slotSiteUrl string = ''
+
+@description('MySQL server hostname')
+param databaseHostFQDN string
+
+@description('Ghost datbase name')
+param databaseName string
+
+@description('Slot MySQL server hostname')
+param slotDatabaseHostFQDN string = ''
+
+@description('Ghost database user name')
+param databaseLogin string
+
+@description('Ghost database user password')
+param databasePasswordSecretUri string
+
 var storageAccountAccessKey = listKeys(existingStorageAccount.id, existingStorageAccount.apiVersion).keys[0].value
 
 var slotStorageAccountAccessKey = slotEnabled ? listKeys(existingSlotStorageAccount.id, existingSlotStorageAccount.apiVersion).keys[0].value : ''
@@ -81,6 +107,64 @@ resource webApp 'Microsoft.Web/sites@2021-01-15' = {
       linuxFxVersion: containerImageReference
       alwaysOn: true
       use32BitWorkerProcess: false
+      appSettings: [
+        {
+          name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
+          value: 'false'
+        }
+        {
+          name: 'DOCKER_REGISTRY_SERVER_URL'
+          value: containerRegistryUrl
+        }
+        {
+          name: 'NODE_ENV'
+          value: toLower(environment)
+        }
+        {
+          name: 'GHOST_CONTENT'
+          value: containerMountPath
+        }
+        {
+          name: 'paths__contentPath'
+          value: containerMountPath
+        }
+        {
+          name: 'privacy_useUpdateCheck'
+          value: 'false'
+        }
+        {
+          name: 'url'
+          value: siteUrl
+        }
+        {
+          name: 'database__client'
+          value: 'mysql'
+        }
+        {
+          name: 'database__connection__host'
+          value: databaseHostFQDN
+        }
+        {
+          name: 'database__connection__user'
+          value: databaseLogin
+        }
+        {
+          name: 'database__connection__password'
+          value: '@Microsoft.KeyVault(SecretUri=${databasePasswordSecretUri})'
+        }
+        {
+          name: 'database__connection__database'
+          value: databaseName
+        }
+        {
+          name: 'database__connection__ssl'
+          value: 'true'
+        }
+        {
+          name: 'database__connection__ssl_minVersion'
+          value: 'TLSv1.2'
+        }
+      ]
       azureStorageAccounts: {
         ContentFilesVolume: {
           type: 'AzureFiles'
@@ -151,7 +235,7 @@ resource webAppDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-pre
   }
 }
 
-resource webAppStaging 'Microsoft.Web/sites/slots@2021-02-01' = if (slotEnabled) {
+resource webAppSlot 'Microsoft.Web/sites/slots@2021-02-01' = if (slotEnabled) {
   parent: webApp
   name: slotName
   location: location
@@ -180,6 +264,64 @@ resource webAppStaging 'Microsoft.Web/sites/slots@2021-02-01' = if (slotEnabled)
       linuxFxVersion: containerImageReference
       alwaysOn: true
       use32BitWorkerProcess: false
+      appSettings: [
+        {
+          name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
+          value: 'false'
+        }
+        {
+          name: 'DOCKER_REGISTRY_SERVER_URL'
+          value: containerRegistryUrl
+        }
+        {
+          name: 'NODE_ENV'
+          value: toLower(environment)
+        }
+        {
+          name: 'GHOST_CONTENT'
+          value: containerMountPath
+        }
+        {
+          name: 'paths__contentPath'
+          value: containerMountPath
+        }
+        {
+          name: 'privacy_useUpdateCheck'
+          value: 'false'
+        }
+        {
+          name: 'url'
+          value: slotSiteUrl
+        }
+        {
+          name: 'database__client'
+          value: 'mysql'
+        }
+        {
+          name: 'database__connection__host'
+          value: slotDatabaseHostFQDN
+        }
+        {
+          name: 'database__connection__user'
+          value: databaseLogin
+        }
+        {
+          name: 'database__connection__password'
+          value: '@Microsoft.KeyVault(SecretUri=${databasePasswordSecretUri})'
+        }
+        {
+          name: 'database__connection__database'
+          value: databaseName
+        }
+        {
+          name: 'database__connection__ssl'
+          value: 'true'
+        }
+        {
+          name: 'database__connection__ssl_minVersion'
+          value: 'TLSv1.2'
+        }
+      ]
       azureStorageAccounts: {
         ContentFilesVolume: {
           type: 'AzureFiles'
@@ -194,7 +336,7 @@ resource webAppStaging 'Microsoft.Web/sites/slots@2021-02-01' = if (slotEnabled)
 }
 
 resource slotConfig 'Microsoft.Web/sites/slots/config@2021-02-01' = if (slotEnabled) {
-  parent: webAppStaging
+  parent: webAppSlot
   name: 'web'
   properties: {
     ipSecurityRestrictions: [
@@ -211,7 +353,7 @@ resource slotConfig 'Microsoft.Web/sites/slots/config@2021-02-01' = if (slotEnab
 }
 
 resource stgWebAppDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (slotEnabled) {
-  scope: webAppStaging
+  scope: webAppSlot
   name: 'WebAppDiagnostics'
   properties: {
     workspaceId: logAnalyticsWorkspaceId
@@ -261,4 +403,4 @@ resource stgWebAppDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-
 // output principalIds array = slotEnabled ? concat(array(webApp.identity.principalId), array(webAppStaging.identity.principalId)) : array(webApp.identity.principalId)
 
 output webNames array = slotEnabled ? concat(array(webApp.name), array('${webApp.name}-${slotName}')) : array(webApp.name)
-// output hostIds array = slotEnabled ? concat(array(webApp.id), array(webAppStaging.id)) : array(webApp.id)
+output hostNames array = slotEnabled ? concat(array(webApp.properties.hostNames[0]), array(webAppSlot.properties.hostNames[0])) : array(webApp.properties.hostNames[0])
