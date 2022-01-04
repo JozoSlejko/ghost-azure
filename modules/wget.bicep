@@ -1,3 +1,5 @@
+param webAppName string
+
 @description('Link to call')
 param link string
 
@@ -5,7 +7,7 @@ param link string
 param utcValue string = utcNow()
 
 resource wgetDeploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
-  name: 'wgetDeployment'
+  name: '${webAppName}wgetDeployment'
   location: resourceGroup().location
   kind: 'AzureCLI'
   properties: {
@@ -17,7 +19,7 @@ resource wgetDeploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01'
         value: link
       }
     ]
-    scriptContent: 'wget \${Link} &>/dev/null ; sleep 30s ; wget \${Link} &>/dev/null'
+    scriptContent: '! wget \${Link} &>/dev/null'
     cleanupPreference: 'Always'
     retentionInterval: 'PT1H'
   }

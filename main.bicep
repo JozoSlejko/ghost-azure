@@ -320,6 +320,7 @@ module webApp './modules/webApp.bicep' = {
 module wgetWebApp 'modules/wget.bicep' = {
   name: 'wgetWebApp'
   params: {
+    webAppName: webAppName
     link: 'https://${webApp.outputs.hostNames[0]}'
   }
 }
@@ -327,6 +328,7 @@ module wgetWebApp 'modules/wget.bicep' = {
 module wgetSlotWebApp 'modules/wget.bicep' = {
   name: 'wgetSlotWebApp'
   params: {
+    webAppName: '${webAppName}${slotName}'
     link: 'https://${webApp.outputs.hostNames[1]}'
   }
 }
@@ -376,6 +378,7 @@ module wgetWebApp2 'modules/wget.bicep' = {
     allWebAppSettings
   ]
   params: {
+    webAppName: webAppName
     link: 'https://${webApp.outputs.hostNames[0]}'
   }
 }
@@ -386,6 +389,7 @@ module wgetSlotWebApp2 'modules/wget.bicep' = {
     allWebAppSettings
   ]
   params: {
+    webAppName: '${webAppName}${slotName}'
     link: 'https://${webApp.outputs.hostNames[1]}'
   }
 }
