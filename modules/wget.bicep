@@ -17,7 +17,7 @@ resource wgetDeploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01'
         value: link
       }
     ]
-    scriptContent: 'wget \${Link}; sleep 30s; wget \${Link}'
+    scriptContent: 'wget \${Link} &>/dev/null ; sleep 30s ; wget \${Link} &>/dev/null'
     cleanupPreference: 'Always'
     retentionInterval: 'PT1H'
   }
