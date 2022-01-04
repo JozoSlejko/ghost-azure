@@ -325,19 +325,19 @@ module wgetWebApp 'modules/wget.bicep' = {
   }
 }
 
-module wgetSlotWebApp 'modules/wget.bicep' = {
-  name: 'wgetSlotWebApp'
-  params: {
-    webAppName: '${webAppName}${slotName}'
-    link: 'https://${webApp.outputs.hostNames[1]}'
-  }
-}
+// module wgetSlotWebApp 'modules/wget.bicep' = {
+//   name: 'wgetSlotWebApp'
+//   params: {
+//     webAppName: '${webAppName}${slotName}'
+//     link: 'https://${webApp.outputs.hostNames[1]}'
+//   }
+// }
 
 module webAppSleep 'modules/sleep.bicep' = {
   name: 'webAppSleep'
   dependsOn: [
     wgetWebApp
-    wgetSlotWebApp
+    // wgetSlotWebApp
   ]
   params: {
     time: '300'
@@ -383,22 +383,22 @@ module wgetWebApp2 'modules/wget.bicep' = {
   }
 }
 
-module wgetSlotWebApp2 'modules/wget.bicep' = {
-  name: 'wgetSlotWebApp2'
-  dependsOn: [
-    allWebAppSettings
-  ]
-  params: {
-    webAppName: '${webAppName}${slotName}'
-    link: 'https://${webApp.outputs.hostNames[1]}'
-  }
-}
+// module wgetSlotWebApp2 'modules/wget.bicep' = {
+//   name: 'wgetSlotWebApp2'
+//   dependsOn: [
+//     allWebAppSettings
+//   ]
+//   params: {
+//     webAppName: '${webAppName}${slotName}'
+//     link: 'https://${webApp.outputs.hostNames[1]}'
+//   }
+// }
 
 module webAppSleep2 'modules/sleep.bicep' = {
   name: 'webAppSleep2'
   dependsOn: [
     wgetWebApp2
-    wgetSlotWebApp2
+    // wgetSlotWebApp2
   ]
   params: {
     time: '300'
