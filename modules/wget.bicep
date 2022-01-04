@@ -6,6 +6,8 @@ param link string
 @description('forceUpdateTag property, used to force the execution of the script resource when no other properties have changed.')
 param utcValue string = utcNow()
 
+var deploymentScriptContent = loadTextContent('../scripts/wget.sh')
+
 resource wgetDeploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
   name: '${webAppName}wgetDeployment'
   location: resourceGroup().location
@@ -19,8 +21,8 @@ resource wgetDeploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01'
         value: link
       }
     ]
-    scriptContent: '! wget \${Link} &>/dev/null'
-    cleanupPreference: 'Always'
+    scriptContent: deploymentScriptContent
+    cleanupPreference: 'OnSuccess'
     retentionInterval: 'PT1H'
   }
 }
