@@ -59,7 +59,7 @@ resource webAppSettings 'Microsoft.Web/sites/config@2021-01-15' = {
     ApplicationInsightsAgent_EXTENSION_VERSION: '~3'
     InstrumentationEngine_EXTENSION_VERSION: 'disabled'
     SnapshotDebugger_EXTENSION_VERSION: 'disabled'
-    XDT_MicrosoftApplicationInsights_BaseExtensions: 'dsiabled'
+    XDT_MicrosoftApplicationInsights_BaseExtensions: 'disabled'
     XDT_MicrosoftApplicationInsights_Mode: 'recommended'
     XDT_MicrosoftApplicationInsights_PreemptSdk: 'disabled'
     // General settings
@@ -94,7 +94,7 @@ resource slotWebAppSettings 'Microsoft.Web/sites/slots/config@2021-02-01' = if (
     ApplicationInsightsAgent_EXTENSION_VERSION: '~3'
     InstrumentationEngine_EXTENSION_VERSION: 'disabled'
     SnapshotDebugger_EXTENSION_VERSION: 'disabled'
-    XDT_MicrosoftApplicationInsights_BaseExtensions: 'dsiabled'
+    XDT_MicrosoftApplicationInsights_BaseExtensions: 'disabled'
     XDT_MicrosoftApplicationInsights_Mode: 'recommended'
     XDT_MicrosoftApplicationInsights_PreemptSdk: 'disabled'
     // General settings

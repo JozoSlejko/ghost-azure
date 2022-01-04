@@ -178,22 +178,22 @@ resource webApp 'Microsoft.Web/sites@2021-01-15' = {
   }
 }
 
-resource siteConfig 'Microsoft.Web/sites/config@2021-01-15' = {
-  parent: webApp
-  name: 'web'
-  properties: {
-    ipSecurityRestrictions: [
-      {
-        ipAddress: 'AzureFrontDoor.Backend'
-        action: 'Allow'
-        tag: 'ServiceTag'
-        priority: 300
-        name: 'Access from Azure Front Door'
-        description: 'Rule for access from Azure Front Door'
-      }
-    ]
-  }
-}
+// resource siteConfig 'Microsoft.Web/sites/config@2021-01-15' = {
+//   parent: webApp
+//   name: 'web'
+//   properties: {
+//     ipSecurityRestrictions: [
+//       {
+//         ipAddress: 'AzureFrontDoor.Backend'
+//         action: 'Allow'
+//         tag: 'ServiceTag'
+//         priority: 300
+//         name: 'Access from Azure Front Door'
+//         description: 'Rule for access from Azure Front Door'
+//       }
+//     ]
+//   }
+// }
 
 resource webAppDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   scope: webApp
@@ -335,22 +335,22 @@ resource webAppSlot 'Microsoft.Web/sites/slots@2021-02-01' = if (slotEnabled) {
   }
 }
 
-resource slotConfig 'Microsoft.Web/sites/slots/config@2021-02-01' = if (slotEnabled) {
-  parent: webAppSlot
-  name: 'web'
-  properties: {
-    ipSecurityRestrictions: [
-      {
-        ipAddress: 'AzureFrontDoor.Backend'
-        action: 'Allow'
-        tag: 'ServiceTag'
-        priority: 300
-        name: 'Access from Azure Front Door'
-        description: 'Rule for access from Azure Front Door'
-      }
-    ]
-  }
-}
+// resource slotConfig 'Microsoft.Web/sites/slots/config@2021-02-01' = if (slotEnabled) {
+//   parent: webAppSlot
+//   name: 'web'
+//   properties: {
+//     ipSecurityRestrictions: [
+//       {
+//         ipAddress: 'AzureFrontDoor.Backend'
+//         action: 'Allow'
+//         tag: 'ServiceTag'
+//         priority: 300
+//         name: 'Access from Azure Front Door'
+//         description: 'Rule for access from Azure Front Door'
+//       }
+//     ]
+//   }
+// }
 
 resource stgWebAppDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (slotEnabled) {
   scope: webAppSlot

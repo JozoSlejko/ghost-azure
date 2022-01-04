@@ -452,6 +452,16 @@ module frontDoor 'modules/fdStandard.bicep' = {
   }
 }
 
+module webAppIpRestriction 'modules/webAppIpRestriction.bicep' = {
+  name: 'webAppIpRestrictionDeploy'
+  params: {
+    frontDoorName: frontDoor.name
+    slotEnabled: slotEnabled
+    slotName: slotName
+    webAppName: webAppName
+  }
+}
+
 // Function app section start
 ///////////////////////////////////////////////////////
 
