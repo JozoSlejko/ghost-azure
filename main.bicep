@@ -384,7 +384,7 @@ module frontDoor 'modules/fdStandard.bicep' = {
   params: {
     frontDoorName: frontDoorName
     hostIds: webApp.outputs.hostIds
-    hostNames: webApp.outputs.hostNames
+    webNames: webApp.outputs.webNames
     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
   }
 }

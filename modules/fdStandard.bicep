@@ -1,7 +1,7 @@
 
 param tags object = {}
 
-param hostNames array
+param webNames array
 param hostIds array
 
 @minLength(5)
@@ -23,7 +23,7 @@ resource frontDoorProfile 'Microsoft.Cdn/profiles@2020-09-01' = {
   properties: {}
 }
 
-resource afdEndpoint 'Microsoft.Cdn/profiles/afdEndpoints@2020-09-01' = [for endpoint in hostNames: {
+resource afdEndpoint 'Microsoft.Cdn/profiles/afdEndpoints@2020-09-01' = [for endpoint in webNames: {
   name: endpoint
   location: 'global'
   parent: frontDoorProfile
@@ -33,7 +33,7 @@ resource afdEndpoint 'Microsoft.Cdn/profiles/afdEndpoints@2020-09-01' = [for end
   }
 }]
 
-resource afdOriginGroup 'Microsoft.Cdn/profiles/originGroups@2020-09-01' = [for (endpoint, index) in hostNames: {
+resource afdOriginGroup 'Microsoft.Cdn/profiles/originGroups@2020-09-01' = [for (endpoint, index) in webNames: {
   name: endpoint
   parent: frontDoorProfile
   properties: {
@@ -52,7 +52,7 @@ resource afdOriginGroup 'Microsoft.Cdn/profiles/originGroups@2020-09-01' = [for 
   }
 }]
 
-resource afdOrigin 'Microsoft.Cdn/profiles/originGroups/origins@2020-09-01' = [for (endpoint, index) in hostNames: {
+resource afdOrigin 'Microsoft.Cdn/profiles/originGroups/origins@2020-09-01' = [for (endpoint, index) in webNames: {
   name: endpoint
   parent: afdOriginGroup[index]
   properties: {
@@ -70,7 +70,7 @@ resource afdOrigin 'Microsoft.Cdn/profiles/originGroups/origins@2020-09-01' = [f
 
 }]
 
-resource afdEndpointRoute 'Microsoft.Cdn/profiles/afdEndpoints/routes@2020-09-01' = [for (endpoint, index) in hostNames: {
+resource afdEndpointRoute 'Microsoft.Cdn/profiles/afdEndpoints/routes@2020-09-01' = [for (endpoint, index) in webNames: {
   name: endpoint
   parent: afdEndpoint[index]
   dependsOn: [
@@ -117,6 +117,6 @@ resource frontDoorDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-
   }
 }
 
-output frontDoorEndpointHostNames array = [for (endpoint, i) in hostNames: {
+output frontDoorEndpointHostNames array = [for (endpoint, i) in webNames: {
   endpointHostName: afdEndpoint[i].properties.hostName
 }]
