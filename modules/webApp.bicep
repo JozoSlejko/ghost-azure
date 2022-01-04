@@ -16,14 +16,6 @@ param appServicePlanId string
 @description('Log Analytics workspace id to use for diagnostics settings')
 param logAnalyticsWorkspaceId string
 
-/*
-@description('Azure container registry url')
-param containerRegistryUrl string
-
-@description('Ghost container full image name and tag')
-param ghostContainerImage string
-*/
-
 @description('Container image reference')
 param containerImageReference string
 
@@ -48,8 +40,6 @@ param slotWebUserAssignedIdentityId string = ''
 param acrUserManagedIdentityClientID string
 
 param slotAcrUserManagedIdentityClientID string = ''
-
-// var containerImageReference = 'DOCKER|${containerRegistryUrl}/${ghostContainerImage}'
 
 var storageAccountAccessKey = listKeys(existingStorageAccount.id, existingStorageAccount.apiVersion).keys[0].value
 
@@ -203,7 +193,6 @@ resource webAppStaging 'Microsoft.Web/sites/slots@2021-02-01' = if (slotEnabled)
   }
 }
 
-/*
 resource slotConfig 'Microsoft.Web/sites/slots/config@2021-02-01' = if (slotEnabled) {
   parent: webAppStaging
   name: 'web'
@@ -220,7 +209,6 @@ resource slotConfig 'Microsoft.Web/sites/slots/config@2021-02-01' = if (slotEnab
     ]
   }
 }
-*/
 
 resource stgWebAppDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (slotEnabled) {
   scope: webAppStaging

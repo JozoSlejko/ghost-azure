@@ -86,13 +86,11 @@ resource afdEndpointRoute 'Microsoft.Cdn/profiles/afdEndpoints/routes@2020-09-01
     patternsToMatch: [
       '/*'
     ]
-    compressionSettings: {
-      isCompressionEnabled: true
-    }
     queryStringCachingBehavior: 'IgnoreQueryString'
     forwardingProtocol: 'HttpsOnly'
     linkToDefaultDomain: 'Enabled'
     httpsRedirect: 'Enabled'
+    enabledState: 'Enabled'
   }
 
 }]

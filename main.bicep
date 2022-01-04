@@ -79,7 +79,7 @@ var ghostContentFileShareName = 'contentfiles'
 var ghostContentFilesMountPath = '/var/lib/ghost/content_files'
 
 var frontDoorName = '${applicationNamePrefix}-fd-${environmentCode}-${uniqueString(resourceGroup().id)}'
-var wafPolicyName = '${applicationNamePrefix}waf${uniqueString(resourceGroup().id)}'
+// var wafPolicyName = '${applicationNamePrefix}waf${uniqueString(resourceGroup().id)}'
 
 var tags = {
   'owner': 'jozoslejko'
@@ -467,7 +467,7 @@ module functionAppSettings './modules/functionAppSettings.bicep' = {
   params: {
     functionAppName: function.outputs.name
     storageAccountName: faStorageAccount.outputs.name
-    frontdoorHostName: frontDoor.outputs.frontDoorEndpointHostNames[0]
+    frontdoorHostName: frontDoor.outputs.frontDoorEndpointHostNames[0].endpointHostName
     appPasswordUri: keyVault.outputs.functionAppPasswordSecretUri
     applicationInsightsConnectionString: applicationInsights.outputs.ConnectionString
     applicationInsightsInstrumentationKey: applicationInsights.outputs.InstrumentationKey
@@ -480,6 +480,6 @@ module functionAppSettings './modules/functionAppSettings.bicep' = {
 // Outputs
 
 output slotWebAppHostName string = slotEnabled ? webApp.outputs.stagingHostName : ''
-output endpointHostName string = frontDoor.outputs.frontDoorEndpointHostNames[0]
+output endpointHostName string = frontDoor.outputs.frontDoorEndpointHostNames[0].endpointHostName
 output faName string = function.outputs.name
 output faHostName string = function.outputs.hostName
