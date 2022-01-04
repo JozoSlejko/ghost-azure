@@ -1,8 +1,6 @@
-
 param tags object = {}
 
 param webNames array
-// param hostIds array
 
 @minLength(5)
 @maxLength(64)
@@ -33,7 +31,7 @@ resource afdEndpoint 'Microsoft.Cdn/profiles/afdEndpoints@2020-09-01' = [for end
   }
 }]
 
-resource afdOriginGroup 'Microsoft.Cdn/profiles/originGroups@2020-09-01' = [for (endpoint, index) in webNames: {
+resource afdOriginGroup 'Microsoft.Cdn/profiles/originGroups@2020-09-01' = [for endpoint in webNames: {
   name: endpoint
   parent: frontDoorProfile
   properties: {
@@ -56,9 +54,6 @@ resource afdOrigin 'Microsoft.Cdn/profiles/originGroups/origins@2020-09-01' = [f
   name: endpoint
   parent: afdOriginGroup[index]
   properties: {
-    // azureOrigin: {
-    //   id: hostIds[index]
-    // }
     hostName: '${endpoint}.azurewebsites.net'
     originHostHeader: '${endpoint}.azurewebsites.net'
     httpPort: 80

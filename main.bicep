@@ -387,7 +387,6 @@ module frontDoor 'modules/fdStandard.bicep' = {
   name: 'frontDoorDeploy'
   params: {
     frontDoorName: frontDoorName
-    // hostIds: webApp.outputs.hostIds
     webNames: webApp.outputs.webNames
     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
   }
