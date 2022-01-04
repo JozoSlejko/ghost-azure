@@ -368,19 +368,6 @@ module slotMySQLServer 'modules/mySQLServer.bicep' = if (slotEnabled) {
   }
 }
 
-module slotMySQLServer 'modules/mySQLServer.bicep' = if (slotEnabled == 'Yes') {
-  name: 'slotMySQLServerDeploy'
-  params: {
-    tags: tags
-    administratorLogin: databaseLogin
-    administratorPassword: databasePassword
-    location: location
-    logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
-    mySQLServerName: slotMySQLServerName
-    mySQLServerSku: environmentConfigurationMap[environmentName].mySqlServer.sku.name
-  }
-}
-
 module frontDoor 'modules/frontDoor.bicep' = {
   name: 'FrontDoorDeploy'
   params: {
