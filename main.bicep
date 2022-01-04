@@ -293,7 +293,7 @@ module ghostWebAppSettings 'modules/ghostWebAppSettings.bicep' = {
     environment: environmentName
     slotEnabled: slotEnabled
     slotName: slotName
-    webAppName: webApp.outputs.name
+    webAppName: webApp.outputs.webNames[0]
     containerRegistryUrl: containerRegistryUrl
     containerMountPath: ghostContentFilesMountPath
     databaseHostFQDN: mySQLServer.outputs.fullyQualifiedDomainName
@@ -301,8 +301,10 @@ module ghostWebAppSettings 'modules/ghostWebAppSettings.bicep' = {
     databaseLogin: '${databaseLogin}@${mySQLServer.outputs.name}'
     databasePasswordSecretUri: keyVault.outputs.databasePasswordSecretUri
     databaseName: databaseName
-    siteUrl: 'https://${frontDoorName}.azurefd.net'
-    slotSiteUrl: slotEnabled ? 'https://${webApp.outputs.stagingHostName}' : ''
+    // siteUrl: 'https://${frontDoorName}.azurefd.net'
+    // slotSiteUrl: slotEnabled ? 'https://${webApp.outputs.stagingHostName}' : ''
+    siteUrl: 'https://${frontDoor.outputs.frontDoorEndpointHostNames[0].endpointHostName}'
+    slotSiteUrl: slotEnabled ? 'https://${frontDoor.outputs.frontDoorEndpointHostNames[1].endpointHostName}' : ''
   }
 }
 
@@ -325,7 +327,7 @@ module allWebAppSettings 'modules/webAppSettings.bicep' = {
     environment: environmentName
     slotEnabled: slotEnabled
     slotName: slotName
-    webAppName: webApp.outputs.name
+    webAppName: webApp.outputs.webNames[0]
     applicationInsightsConnectionString: applicationInsights.outputs.ConnectionString
     applicationInsightsInstrumentationKey: applicationInsights.outputs.InstrumentationKey
     containerRegistryUrl: containerRegistryUrl
@@ -335,8 +337,10 @@ module allWebAppSettings 'modules/webAppSettings.bicep' = {
     databaseLogin: '${databaseLogin}@${mySQLServer.outputs.name}'
     databasePasswordSecretUri: keyVault.outputs.databasePasswordSecretUri
     databaseName: databaseName
-    siteUrl: 'https://${frontDoorName}.azurefd.net'
-    slotSiteUrl: slotEnabled ? 'https://${webApp.outputs.stagingHostName}' : ''
+    // siteUrl: 'https://${frontDoorName}.azurefd.net'
+    // slotSiteUrl: slotEnabled ? 'https://${webApp.outputs.stagingHostName}' : ''
+    siteUrl: 'https://${frontDoor.outputs.frontDoorEndpointHostNames[0].endpointHostName}'
+    slotSiteUrl: slotEnabled ? 'https://${frontDoor.outputs.frontDoorEndpointHostNames[1].endpointHostName}' : ''
   }
 }
 
@@ -369,7 +373,7 @@ module slotMySQLServer 'modules/mySQLServer.bicep' = if (slotEnabled) {
 }
 
 // module frontDoor 'modules/frontDoor.bicep' = {
-//   name: 'FrontDoorDeploy'
+//   name: 'frontDoorDeploy'
 //   params: {
 //     tags: tags
 //     frontDoorName: frontDoorName
@@ -380,7 +384,7 @@ module slotMySQLServer 'modules/mySQLServer.bicep' = if (slotEnabled) {
 // }
 
 module frontDoor 'modules/fdStandard.bicep' = {
-  name: 'FrontDoorDeploy'
+  name: 'frontDoorDeploy'
   params: {
     frontDoorName: frontDoorName
     // hostIds: webApp.outputs.hostIds
@@ -479,7 +483,8 @@ module functionAppSettings './modules/functionAppSettings.bicep' = {
 
 // Outputs
 
-output slotWebAppHostName string = slotEnabled ? webApp.outputs.stagingHostName : ''
 output endpointHostName string = frontDoor.outputs.frontDoorEndpointHostNames[0].endpointHostName
+output slotWebAppHostName string = slotEnabled ? frontDoor.outputs.frontDoorEndpointHostNames[1].endpointHostName : ''
+
 output faName string = function.outputs.name
 output faHostName string = function.outputs.hostName

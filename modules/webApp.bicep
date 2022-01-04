@@ -250,12 +250,12 @@ resource stgWebAppDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-
   }
 }
 
-output name string = webApp.name
-output hostName string = webApp.properties.hostNames[0]
+// output name string = webApp.name
+// output hostName string = webApp.properties.hostNames[0]
 // output principalId string = webApp.identity.principalId
 
-output stagingName string = slotEnabled ? webAppStaging.name : ''
-output stagingHostName string = slotEnabled ? webAppStaging.properties.hostNames[0] : ''
+// output stagingName string = slotEnabled ? webAppStaging.name : ''
+// output stagingHostName string = slotEnabled ? webAppStaging.properties.hostNames[0] : ''
 // output stagingPrincipalId string = slotEnabled ? webAppStaging.identity.principalId : ''
 
 // output principalIds array = slotEnabled ? concat(array(webApp.identity.principalId), array(webAppStaging.identity.principalId)) : array(webApp.identity.principalId)

@@ -81,6 +81,7 @@ resource afdEndpointRoute 'Microsoft.Cdn/profiles/afdEndpoints/routes@2020-09-01
       id: afdOriginGroup[index].id
     }
     supportedProtocols: [
+      'Http'
       'Https'
     ]
     patternsToMatch: [
