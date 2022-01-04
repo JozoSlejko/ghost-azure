@@ -2,7 +2,7 @@
 param tags object = {}
 
 param webNames array
-param hostIds array
+// param hostIds array
 
 @minLength(5)
 @maxLength(64)
@@ -56,9 +56,9 @@ resource afdOrigin 'Microsoft.Cdn/profiles/originGroups/origins@2020-09-01' = [f
   name: endpoint
   parent: afdOriginGroup[index]
   properties: {
-    azureOrigin: {
-      id: hostIds[index]
-    }
+    // azureOrigin: {
+    //   id: hostIds[index]
+    // }
     hostName: '${endpoint}.azurewebsites.net'
     originHostHeader: '${endpoint}.azurewebsites.net'
     httpPort: 80
