@@ -499,7 +499,7 @@ module sleep 'modules/sleep.bicep' = {
     faStorageAccount
   ]
   params: {
-    time: '120'
+    time: '240'
   }
 }
 
