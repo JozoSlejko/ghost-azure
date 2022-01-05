@@ -28,6 +28,10 @@ param wafManagedRuleSets array = [
 @description('Log Analytics workspace id to use for diagnostics settings')
 param logAnalyticsWorkspaceId string
 
+var domains = [for (endpoint, i) in webNames: {
+  id: afdEndpoint[i].id
+}]
+
 // resource definitions
 
 resource frontDoorProfile 'Microsoft.Cdn/profiles@2020-09-01' = {
@@ -184,14 +188,7 @@ resource securityPolicy 'Microsoft.Cdn/profiles/securityPolicies@2020-09-01' = {
       }
       associations: [
         {
-          domains: [
-            {
-              id: afdEndpoint[0].id
-            }
-            {
-              id: afdEndpoint[1].id
-            }
-          ]
+          domains: domains
           patternsToMatch: [
             '/*'
           ]
