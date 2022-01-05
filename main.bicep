@@ -330,7 +330,7 @@ module wgetWebApp 'modules/wget.bicep' = {
     webAppName: webAppName
     webAppLink: 'https://${webApp.outputs.hostNames[0]}'
     slotWebAppLink: slotEnabled ? 'https://${webApp.outputs.hostNames[1]}' : ''
-    time: '240'
+    time: '30'
   }
 }
 
@@ -378,7 +378,7 @@ module wgetWebApp2 'modules/wget.bicep' = {
     webAppName: webAppName
     webAppLink: 'https://${webApp.outputs.hostNames[0]}'
     slotWebAppLink: slotEnabled ? 'https://${webApp.outputs.hostNames[1]}' : ''
-    time: '240'
+    time: '5'
   }
 }
 
