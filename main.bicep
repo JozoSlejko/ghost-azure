@@ -321,33 +321,27 @@ module wgetWebApp 'modules/wget.bicep' = {
   name: 'wgetWebApp'
   params: {
     webAppName: webAppName
-    link: 'https://${webApp.outputs.hostNames[0]}'
+    webAppLink: 'https://${webApp.outputs.hostNames[0]}'
+    slotWebAppLink: slotEnabled ? 'https://${webApp.outputs.hostNames[1]}' : ''
+    time: '240'
   }
 }
 
-// module wgetSlotWebApp 'modules/wget.bicep' = {
-//   name: 'wgetSlotWebApp'
+// module webAppSleep 'modules/sleep.bicep' = {
+//   name: 'webAppSleep'
+//   dependsOn: [
+//     wgetWebApp
+//     // wgetSlotWebApp
+//   ]
 //   params: {
-//     webAppName: '${webAppName}${slotName}'
-//     link: 'https://${webApp.outputs.hostNames[1]}'
+//     time: '300'
 //   }
 // }
-
-module webAppSleep 'modules/sleep.bicep' = {
-  name: 'webAppSleep'
-  dependsOn: [
-    wgetWebApp
-    // wgetSlotWebApp
-  ]
-  params: {
-    time: '300'
-  }
-}
 
 module allWebAppSettings 'modules/webAppSettings.bicep' = {
   name: 'allWebAppSettingsDeploy'
   dependsOn: [
-    webAppSleep
+    wgetWebApp
   ]
   params: {
     environment: environmentName
@@ -363,10 +357,6 @@ module allWebAppSettings 'modules/webAppSettings.bicep' = {
     databaseLogin: '${databaseLogin}@${mySQLServer.outputs.name}'
     databasePasswordSecretUri: keyVault.outputs.databasePasswordSecretUri
     databaseName: databaseName
-    // siteUrl: 'https://${frontDoorName}.azurefd.net'
-    // slotSiteUrl: slotEnabled ? 'https://${webApp.outputs.stagingHostName}' : ''
-    // siteUrl: 'https://${frontDoor.outputs.frontDoorEndpointHostNames[0].endpointHostName}'
-    // slotSiteUrl: slotEnabled ? 'https://${frontDoor.outputs.frontDoorEndpointHostNames[1].endpointHostName}' : ''
     siteUrl: 'https://${webAppName}.azurefd.net'
     slotSiteUrl: slotEnabled ? 'https://${webAppName}-${slotName}.azurefd.net' : ''
   }
@@ -379,31 +369,22 @@ module wgetWebApp2 'modules/wget.bicep' = {
   ]
   params: {
     webAppName: webAppName
-    link: 'https://${webApp.outputs.hostNames[0]}'
+    webAppLink: 'https://${webApp.outputs.hostNames[0]}'
+    slotWebAppLink: slotEnabled ? 'https://${webApp.outputs.hostNames[1]}' : ''
+    time: '240'
   }
 }
 
-// module wgetSlotWebApp2 'modules/wget.bicep' = {
-//   name: 'wgetSlotWebApp2'
+// module webAppSleep2 'modules/sleep.bicep' = {
+//   name: 'webAppSleep2'
 //   dependsOn: [
-//     allWebAppSettings
+//     wgetWebApp2
+//     // wgetSlotWebApp2
 //   ]
 //   params: {
-//     webAppName: '${webAppName}${slotName}'
-//     link: 'https://${webApp.outputs.hostNames[1]}'
+//     time: '300'
 //   }
 // }
-
-module webAppSleep2 'modules/sleep.bicep' = {
-  name: 'webAppSleep2'
-  dependsOn: [
-    wgetWebApp2
-    // wgetSlotWebApp2
-  ]
-  params: {
-    time: '300'
-  }
-}
 
 module mySQLServer 'modules/mySQLServer.bicep' = {
   name: 'mySQLServerDeploy'
@@ -447,7 +428,7 @@ module slotMySQLServer 'modules/mySQLServer.bicep' = if (slotEnabled) {
 module frontDoor 'modules/fdStandard.bicep' = {
   name: 'frontDoorDeploy'
   dependsOn: [
-    webAppSleep2
+    wgetWebApp2
   ]
   params: {
     frontDoorName: frontDoorName
@@ -459,7 +440,7 @@ module frontDoor 'modules/fdStandard.bicep' = {
 module webAppIpRestriction 'modules/webAppIpRestriction.bicep' = {
   name: 'webAppIpRestrictionDeploy'
   params: {
-    frontDoorName: frontDoor.name
+    frontDoorName: frontDoorName
     slotEnabled: slotEnabled
     slotName: slotName
     webAppName: webAppName
@@ -496,14 +477,25 @@ module faStorageAccount 'modules/faStorageAccount.bicep' = {
 }
 
 // Sleep
-module sleep 'modules/sleep.bicep' = {
-  name: 'faStorageAccountSleepDeploy'
+// module sleep 'modules/sleep.bicep' = {
+//   name: 'faStorageAccountSleepDeploy'
+//   scope: resourceGroup(faResourceGroup)
+//   dependsOn: [
+//     faStorageAccount
+//   ]
+//   params: {
+//     time: '240'
+//   }
+// }
+
+module checkFaStorage 'modules/checkStorage.bicep' = {
+  name: 'faCheckStorage'
   scope: resourceGroup(faResourceGroup)
   dependsOn: [
     faStorageAccount
   ]
   params: {
-    time: '240'
+    storageName: faStorageAccountName
   }
 }
 
@@ -524,7 +516,7 @@ module function './modules/functionApp.bicep' = {
   name: 'functionAppDeploy'
   scope: resourceGroup(faResourceGroup)
   dependsOn: [
-    sleep
+    checkFaStorage
   ]
   params: {
     appId: faAzureadApp.outputs.applicationId
