@@ -303,27 +303,6 @@ module webApp './modules/webApp.bicep' = {
   }
 }
 
-// module ghostWebAppSettings 'modules/ghostWebAppSettings.bicep' = {
-//   name: 'ghostWebAppSettingsDeploy'
-//   params: {
-//     environment: environmentName
-//     slotEnabled: slotEnabled
-//     slotName: slotName
-//     webAppName: webApp.outputs.webNames[0]
-//     containerRegistryUrl: containerRegistryUrl
-//     containerMountPath: ghostContentFilesMountPath
-//     databaseHostFQDN: mySQLServer.outputs.fullyQualifiedDomainName
-//     slotDatabaseHostFQDN: slotEnabled ? slotMySQLServer.outputs.fullyQualifiedDomainName : ''
-//     databaseLogin: '${databaseLogin}@${mySQLServer.outputs.name}'
-//     databasePasswordSecretUri: keyVault.outputs.databasePasswordSecretUri
-//     databaseName: databaseName
-//     // siteUrl: 'https://${frontDoorName}.azurefd.net'
-//     // slotSiteUrl: slotEnabled ? 'https://${webApp.outputs.stagingHostName}' : ''
-//     siteUrl: 'https://${frontDoor.outputs.frontDoorEndpointHostNames[0].endpointHostName}'
-//     slotSiteUrl: slotEnabled ? 'https://${frontDoor.outputs.frontDoorEndpointHostNames[1].endpointHostName}' : ''
-//   }
-// }
-
 module wgetWebApp 'modules/wget.bicep' = {
   name: 'wgetWebApp'
   params: {
@@ -333,17 +312,6 @@ module wgetWebApp 'modules/wget.bicep' = {
     time: '30'
   }
 }
-
-// module webAppSleep 'modules/sleep.bicep' = {
-//   name: 'webAppSleep'
-//   dependsOn: [
-//     wgetWebApp
-//     // wgetSlotWebApp
-//   ]
-//   params: {
-//     time: '300'
-//   }
-// }
 
 module allWebAppSettings 'modules/webAppSettings.bicep' = {
   name: 'allWebAppSettingsDeploy'
@@ -421,17 +389,6 @@ module slotMySQLServer 'modules/mySQLServer.bicep' = if (slotEnabled) {
   }
 }
 
-// module frontDoor 'modules/frontDoor.bicep' = {
-//   name: 'frontDoorDeploy'
-//   params: {
-//     tags: tags
-//     frontDoorName: frontDoorName
-//     wafPolicyName: wafPolicyName
-//     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
-//     webAppName: webApp.outputs.name
-//   }
-// }
-
 module frontDoor 'modules/fdStandard.bicep' = {
   name: 'frontDoorDeploy'
   dependsOn: [
@@ -444,18 +401,18 @@ module frontDoor 'modules/fdStandard.bicep' = {
   }
 }
 
-// module webAppIpRestriction 'modules/webAppIpRestriction.bicep' = {
-//   name: 'webAppIpRestrictionDeploy'
-//   dependsOn: [
-//     frontDoor
-//   ]
-//   params: {
-//     frontDoorName: frontDoorName
-//     slotEnabled: slotEnabled
-//     slotName: slotName
-//     webAppName: webAppName
-//   }
-// }
+module webAppIpRestriction 'modules/webAppIpRestriction.bicep' = {
+  name: 'webAppIpRestrictionDeploy'
+  dependsOn: [
+    frontDoor
+  ]
+  params: {
+    frontDoorName: frontDoorName
+    slotEnabled: slotEnabled
+    slotName: slotName
+    webAppName: webAppName
+  }
+}
 
 // Function app section start
 ///////////////////////////////////////////////////////

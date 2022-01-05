@@ -38,6 +38,6 @@ resource wgetDeploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01'
     scriptContent: deploymentScriptContent
     cleanupPreference: 'OnSuccess'
     retentionInterval: 'PT1H'
-    timeout: 'PT20M'
+    timeout: 'PT30M'
   }
 }

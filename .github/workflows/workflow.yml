@@ -10,11 +10,13 @@ env:
   AZURE_DEV_RESOURCEGROUP_NAME: rg-ghost-dev-01
   AZURE_PROD_RESOURCEGROUP_NAME: rg-ghost-prd-01
   APP_NAME_PREFIX: ghost
-  SLOT_ENABLED: 'Yes'
+  SLOT_ENABLED: 'No'
   GHOST_CONTAINER: 'ghost:4.32.0-alpine'
   AZURE_FUNCTIONAPP_PACKAGE_PATH: 'function'
   AAD_TENANT_ID: '82850fa2-55e9-4b75-bd6b-98c6cc219872'
   DEV_SP_ID: '28bdb590-552f-4919-b983-305caab5111a'
+  AZURE_CONTAINER_REGISTRY_NAME: 'jacrtst01'
+  AZURE_CONTAINER_REGISTRY_RG_NAME: 'j-acr-tst-01'
 
 jobs:
   # Lint the Bicep file.
@@ -46,6 +48,8 @@ jobs:
                     webSlotEnabled=${{ env.SLOT_ENABLED }}
                     databasePassword=${{ secrets.DATABASEPASSWORD }}
                     ghostContainerName=${{ env.GHOST_CONTAINER }}
+                    azureContainerRegistryName=${{ env.AZURE_CONTAINER_REGISTRY_NAME }}
+                    acrRgName=${{ env.AZURE_CONTAINER_REGISTRY_RG_NAME }}
                     aadTenantId=${{ env.AAD_TENANT_ID }}
                     spId=${{ env.DEV_SP_ID }}
                     spPassword=${{ secrets.DEV_SP_PASSWORD }}
@@ -74,6 +78,8 @@ jobs:
                            webSlotEnabled=${{ env.SLOT_ENABLED }} \
                            databasePassword=${{ secrets.DATABASEPASSWORD }} \
                            ghostContainerName=${{ env.GHOST_CONTAINER }} \
+                           azureContainerRegistryName=${{ env.AZURE_CONTAINER_REGISTRY_NAME }} \
+                           acrRgName=${{ env.AZURE_CONTAINER_REGISTRY_RG_NAME }} \
                            aadTenantId=${{ env.AAD_TENANT_ID }} \
                            spId=${{ env.DEV_SP_ID }} \
                            spPassword=${{ secrets.DEV_SP_PASSWORD }} \
@@ -107,6 +113,8 @@ jobs:
                     webSlotEnabled=${{ env.SLOT_ENABLED }}
                     databasePassword=${{ secrets.DATABASEPASSWORD }}
                     ghostContainerName=${{ env.GHOST_CONTAINER }}
+                    azureContainerRegistryName=${{ env.AZURE_CONTAINER_REGISTRY_NAME }}
+                    acrRgName=${{ env.AZURE_CONTAINER_REGISTRY_RG_NAME }}
                     aadTenantId=${{ env.AAD_TENANT_ID }}
                     spId=${{ env.DEV_SP_ID }}
                     spPassword=${{ secrets.DEV_SP_PASSWORD }}
