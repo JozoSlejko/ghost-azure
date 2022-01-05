@@ -2,11 +2,13 @@
 mkdir -p tmp
 
 i=0
+WGET_EXIT_CODE=0
+
 set +eu
-wget -P ./tmp ${WebAppLink}
+wget -P ./tmp ${WebAppLink} || WGET_EXIT_CODE=$?
 set -eu
 
-while [ $? ]
+while [ WGET_EXIT_CODE ]
 do 
     rm ./tmp/*
     sleep 30
@@ -16,17 +18,17 @@ do
         break
     fi
     set +eu
-    wget -P ./tmp ${WebAppLink}
+    wget -P ./tmp ${WebAppLink} || WGET_EXIT_CODE=$?
     set -eu
 done
 
 rm ./tmp/*
 i=0
 set +eu
-wget -P ./tmp ${SlotWebAppLink}
+wget -P ./tmp ${SlotWebAppLink} || WGET_EXIT_CODE=$?
 set -eu
 
-while [ $? ]
+while [ WGET_EXIT_CODE ]
 do 
     rm ./tmp/*
     sleep 30
@@ -36,7 +38,7 @@ do
         break
     fi
     set +eu
-    wget -P ./tmp ${SlotWebAppLink}
+    wget -P ./tmp ${SlotWebAppLink} || WGET_EXIT_CODE=$?
     set -eu
 done
 
