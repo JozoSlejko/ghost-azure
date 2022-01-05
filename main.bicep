@@ -134,7 +134,7 @@ var environmentConfigurationMap = {
     }
     mySqlServer: {
       sku: {
-        name: 'B_Gen5_1'
+        name: 'GP_Gen5_2' // B_Gen5_1 is slow for testing
       }
       backup: {
         geoRedundantBackup: 'Disabled'
@@ -439,6 +439,9 @@ module frontDoor 'modules/fdStandard.bicep' = {
 
 module webAppIpRestriction 'modules/webAppIpRestriction.bicep' = {
   name: 'webAppIpRestrictionDeploy'
+  dependsOn: [
+    frontDoor
+  ]
   params: {
     frontDoorName: frontDoorName
     slotEnabled: slotEnabled
