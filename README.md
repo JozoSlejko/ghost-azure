@@ -63,6 +63,22 @@ Github workflow has a number of steps which lint and validate the bicep code bef
 
 After the deployment is complete, testing step is performed to validate the run state of both Ghost frontend endpoint and Function app endpoint.
 
+Following variables are used in the workflow to input the parameters. They need to be modified per requirements.
+
+| Name | Description | Example |
+|---|---|---|
+| AZURE_DEV_RESOURCEGROUP_NAME: | Development resource group name | rg-ghost-dev-01 |
+| AZURE_PROD_RESOURCEGROUP_NAME: | Production resource group name | rg-ghost-prd-01 |
+| APP_NAME_PREFIX: | Prefix | ghost |
+| SLOT_ENABLED: | Web App Slot enabled? ('Yes' or 'No') | No |
+| GHOST_CONTAINER: | Name of the Ghost container image in ACR | ghost:4.32.0-alpine |
+| AZURE_FUNCTIONAPP_PACKAGE_PATH: | Path to the function code in the repo | function |
+| AAD_TENANT_ID: | Azure AD Tenant ID | '82850fa2-55e9-4b75-bd6b-98c6cc219872' |
+| DEV_SP_ID: | Development deployment Service Principal ID | 28bdb590-552f-4919-b983-305caab5111a |
+| PROD_SP_ID: | Production deployment Service Principal ID | ad46c6b3-2ed6-40bb-89ee-24f419b60563 |
+| AZURE_CONTAINER_REGISTRY_NAME: | Azure Container Registry Name | jacrtst01 |
+| AZURE_CONTAINER_REGISTRY_RG_NAME: | Azure Container Registry Resource Group Name | j-acr-tst-01 |
+
 Due to the nature of private Github repositories, workflow environment separation and workflow reuse features are not available. Therefore, deployment into higher level environments (staging/production) would be implemented by copy/pasting the development solution yml code, with a couple of parameter changes.
 
 ### Prerequisites
@@ -91,8 +107,10 @@ Following are the prerequisites that need to be met for the Github workflow:
 | AZURE_CREDENTIALS_DEV | Main credentials for worflow deployment to development resource groups |
 | AZURE_CREDENTIALS_PRODUCTION | Main credentials for worflow deployment to production resource groups |
 | DATABASEPASSWORD | MySQL database password |
-| DEV_APP_PASSWORD | Azure AD Application Secret - used by the Function App External Authentication |
-| DEV_SP_PASSWORD | Deployment Service principal secret - used by AAD App Deployment Script |
+| DEV_APP_PASSWORD | Development Azure AD Application Secret - used by the Function App External Authentication |
+| PROD_APP_PASSWORD | Production Azure AD Application Secret - used by the Function App External Authentication |
+| DEV_SP_PASSWORD | Development deployment Service principal secret - used by AAD App Deployment Script |
+| PROD_SP_PASSWORD | Production deployment Service principal secret - used by AAD App Deployment Script |
 
 ## Function App
 
