@@ -79,7 +79,7 @@ var ghostContentFileShareName = 'contentfiles'
 var ghostContentFilesMountPath = '/var/lib/ghost/content_files'
 
 var frontDoorName = '${applicationNamePrefix}-fd-${environmentCode}-${uniqueString(resourceGroup().id)}'
-var wafPolicyName = '${applicationNamePrefix}waf${uniqueString(resourceGroup().id)}'
+// var wafPolicyName = '${applicationNamePrefix}waf${uniqueString(resourceGroup().id)}'
 
 var tags = {
   'owner': 'jozoslejko'
@@ -95,6 +95,7 @@ var servicePrincipalIds = concat(array(webAppUserAssignedIdentity.outputs.msiPri
 @description('Define the SKUs for each component based on the environment type.')
 var environmentConfigurationMap = {
   Production: {
+    environmentCode: 'prd'
     appServicePlan: {
       sku: {
         name: 'S1'
@@ -118,8 +119,12 @@ var environmentConfigurationMap = {
         name: 'PerGB2018'
       }
     }
+    keyVault: {
+      enableSoftDelete: true
+    }
   }
   Development: {
+    environmentCode: 'dev'
     appServicePlan: {
       sku: {
         name: 'S1'
@@ -132,7 +137,7 @@ var environmentConfigurationMap = {
     }
     mySqlServer: {
       sku: {
-        name: 'B_Gen5_1'
+        name: 'GP_Gen5_2' // B_Gen5_1 is slow for testing
       }
       backup: {
         geoRedundantBackup: 'Disabled'
@@ -142,6 +147,9 @@ var environmentConfigurationMap = {
       sku: {
         name: 'PerGB2018'
       }
+    }
+    keyVault: {
+      enableSoftDelete: false
     }
   }
 }
@@ -166,8 +174,6 @@ module slotWebAppUserAssignedIdentity 'modules/userAssignedIdentity.bicep' = if 
     tags: tags
   }
 }
-
-// var userAssignedIdentities = concat(array(webAppUserAssignedIdentity.outputs.msiPrincipalId), slotEnabled ? array(slotWebAppUserAssignedIdentity.outputs.msiPrincipalId) : any(null))
 
 module acrRoleAssignment 'modules/roleAssignment.bicep' = {
   name: 'acrRoleAssignmentDeploy'
@@ -230,6 +236,7 @@ module keyVault './modules/keyVault.bicep' = {
   params: {
     tags: tags
     keyVaultName: keyVaultName
+    enableSoftDelete: environmentConfigurationMap[environmentName].keyVault.enableSoftDelete
     databaseSecretName: 'databasePassword'
     databaseSecretValue: databasePassword // from Github Secrets
     faAdAppSecretName: 'functionAdAppPassword'
@@ -269,6 +276,7 @@ module webApp './modules/webApp.bicep' = {
   ]
   params: {
     tags: tags
+    environment: environmentName
     slotEnabled: slotEnabled
     slotName: slotName
     webAppName: webAppName
@@ -277,55 +285,44 @@ module webApp './modules/webApp.bicep' = {
     acrUserManagedIdentityClientID: webAppUserAssignedIdentity.outputs.msiClientId
     slotWebUserAssignedIdentityId: slotEnabled ? slotWebAppUserAssignedIdentity.outputs.msiResourceId : ''
     slotAcrUserManagedIdentityClientID: slotEnabled ? slotWebAppUserAssignedIdentity.outputs.msiClientId : ''
+    containerRegistryUrl: containerRegistryUrl
     containerImageReference: containerImageReference
     storageAccountName: storageAccount.outputs.name
     slotStorageAccountName: slotEnabled ? slotStorageAccount.outputs.name : ''
     fileShareName: ghostContentFileShareName
     containerMountPath: ghostContentFilesMountPath
+    databaseHostFQDN: mySQLServer.outputs.fullyQualifiedDomainName
+    slotDatabaseHostFQDN: slotMySQLServer.outputs.fullyQualifiedDomainName
+    databaseLogin: '${databaseLogin}@${mySQLServer.outputs.name}'
+    databasePasswordSecretUri: keyVault.outputs.databasePasswordSecretUri
+    databaseName: databaseName
+    siteUrl: 'https://${webAppName}.z01.azurefd.net'
+    slotSiteUrl: slotEnabled ? 'https://${webAppName}-${slotName}.z01.azurefd.net' : ''
     location: location
     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
   }
 }
 
-module ghostWebAppSettings 'modules/ghostWebAppSettings.bicep' = {
-  name: 'ghostWebAppSettingsDeploy'
+module wgetWebApp 'modules/wget.bicep' = {
+  name: 'wgetWebApp'
   params: {
-    environment: environmentName
-    slotEnabled: slotEnabled
-    slotName: slotName
-    webAppName: webApp.outputs.name
-    containerRegistryUrl: containerRegistryUrl
-    containerMountPath: ghostContentFilesMountPath
-    databaseHostFQDN: mySQLServer.outputs.fullyQualifiedDomainName
-    slotDatabaseHostFQDN: slotEnabled ? slotMySQLServer.outputs.fullyQualifiedDomainName : ''
-    databaseLogin: '${databaseLogin}@${mySQLServer.outputs.name}'
-    databasePasswordSecretUri: keyVault.outputs.databasePasswordSecretUri
-    databaseName: databaseName
-    siteUrl: 'https://${frontDoorName}.azurefd.net'
-    slotSiteUrl: slotEnabled ? 'https://${webApp.outputs.stagingHostName}' : ''
-  }
-}
-
-module webAppSettingsSleep 'modules/sleep.bicep' = {
-  name: 'webAppSettingsSleep'
-  dependsOn: [
-    ghostWebAppSettings
-  ]
-  params: {
-    time: '180'
+    webAppName: webAppName
+    webAppLink: 'https://${webApp.outputs.hostNames[0]}'
+    slotWebAppLink: slotEnabled ? 'https://${webApp.outputs.hostNames[1]}' : ''
+    time: '30'
   }
 }
 
 module allWebAppSettings 'modules/webAppSettings.bicep' = {
   name: 'allWebAppSettingsDeploy'
   dependsOn: [
-    webAppSettingsSleep
+    wgetWebApp
   ]
   params: {
     environment: environmentName
     slotEnabled: slotEnabled
     slotName: slotName
-    webAppName: webApp.outputs.name
+    webAppName: webAppName
     applicationInsightsConnectionString: applicationInsights.outputs.ConnectionString
     applicationInsightsInstrumentationKey: applicationInsights.outputs.InstrumentationKey
     containerRegistryUrl: containerRegistryUrl
@@ -335,8 +332,21 @@ module allWebAppSettings 'modules/webAppSettings.bicep' = {
     databaseLogin: '${databaseLogin}@${mySQLServer.outputs.name}'
     databasePasswordSecretUri: keyVault.outputs.databasePasswordSecretUri
     databaseName: databaseName
-    siteUrl: 'https://${frontDoorName}.azurefd.net'
-    slotSiteUrl: slotEnabled ? 'https://${webApp.outputs.stagingHostName}' : ''
+    siteUrl: 'https://${webAppName}.z01.azurefd.net'
+    slotSiteUrl: slotEnabled ? 'https://${webAppName}-${slotName}.z01.azurefd.net' : ''
+  }
+}
+
+module wgetWebApp2 'modules/wget.bicep' = {
+  name: 'wgetWebApp2'
+  dependsOn: [
+    allWebAppSettings
+  ]
+  params: {
+    webAppName: webAppName
+    webAppLink: 'https://${webApp.outputs.hostNames[0]}'
+    slotWebAppLink: slotEnabled ? 'https://${webApp.outputs.hostNames[1]}' : ''
+    time: '5'
   }
 }
 
@@ -368,14 +378,28 @@ module slotMySQLServer 'modules/mySQLServer.bicep' = if (slotEnabled) {
   }
 }
 
-module frontDoor 'modules/frontDoor.bicep' = {
-  name: 'FrontDoorDeploy'
+module frontDoor 'modules/fdStandard.bicep' = {
+  name: 'frontDoorDeploy'
+  dependsOn: [
+    wgetWebApp2
+  ]
   params: {
-    tags: tags
     frontDoorName: frontDoorName
-    wafPolicyName: wafPolicyName
+    webNames: webApp.outputs.webNames
     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
-    webAppName: webApp.outputs.name
+  }
+}
+
+module webAppIpRestriction 'modules/webAppIpRestriction.bicep' = {
+  name: 'webAppIpRestrictionDeploy'
+  dependsOn: [
+    frontDoor
+  ]
+  params: {
+    frontDoorName: frontDoorName
+    slotEnabled: slotEnabled
+    slotName: slotName
+    webAppName: webAppName
   }
 }
 
@@ -408,15 +432,14 @@ module faStorageAccount 'modules/faStorageAccount.bicep' = {
   }
 }
 
-// Sleep
-module sleep 'modules/sleep.bicep' = {
-  name: 'faStorageAccountSleepDeploy'
+module checkFaStorage 'modules/checkStorage.bicep' = {
+  name: 'faCheckStorage'
   scope: resourceGroup(faResourceGroup)
   dependsOn: [
     faStorageAccount
   ]
   params: {
-    time: '120'
+    storageName: faStorageAccountName
   }
 }
 
@@ -437,7 +460,7 @@ module function './modules/functionApp.bicep' = {
   name: 'functionAppDeploy'
   scope: resourceGroup(faResourceGroup)
   dependsOn: [
-    sleep
+    checkFaStorage
   ]
   params: {
     appId: faAzureadApp.outputs.applicationId
@@ -457,7 +480,7 @@ module functionAppSettings './modules/functionAppSettings.bicep' = {
   params: {
     functionAppName: function.outputs.name
     storageAccountName: faStorageAccount.outputs.name
-    frontdoorHostName: frontDoor.outputs.frontendEndpointHostName
+    frontdoorHostName: frontDoor.outputs.frontDoorEndpointHostNames[0].endpointHostName
     appPasswordUri: keyVault.outputs.functionAppPasswordSecretUri
     applicationInsightsConnectionString: applicationInsights.outputs.ConnectionString
     applicationInsightsInstrumentationKey: applicationInsights.outputs.InstrumentationKey
@@ -469,7 +492,8 @@ module functionAppSettings './modules/functionAppSettings.bicep' = {
 
 // Outputs
 
-output slotWebAppHostName string = slotEnabled ? webApp.outputs.stagingHostName : ''
-output endpointHostName string = frontDoor.outputs.frontendEndpointHostName
+output endpointHostName string = frontDoor.outputs.frontDoorEndpointHostNames[0].endpointHostName
+output slotWebAppHostName string = slotEnabled ? frontDoor.outputs.frontDoorEndpointHostNames[1].endpointHostName : ''
+
 output faName string = function.outputs.name
 output faHostName string = function.outputs.hostName
