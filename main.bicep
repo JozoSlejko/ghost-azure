@@ -296,8 +296,8 @@ module webApp './modules/webApp.bicep' = {
     databaseLogin: '${databaseLogin}@${mySQLServer.outputs.name}'
     databasePasswordSecretUri: keyVault.outputs.databasePasswordSecretUri
     databaseName: databaseName
-    siteUrl: 'https://${webAppName}.azurefd.net'
-    slotSiteUrl: slotEnabled ? 'https://${webAppName}-${slotName}.azurefd.net' : ''
+    siteUrl: 'https://${webAppName}.z01.azurefd.net'
+    slotSiteUrl: slotEnabled ? 'https://${webAppName}-${slotName}.z01.azurefd.net' : ''
     location: location
     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
   }
@@ -364,8 +364,8 @@ module allWebAppSettings 'modules/webAppSettings.bicep' = {
     databaseLogin: '${databaseLogin}@${mySQLServer.outputs.name}'
     databasePasswordSecretUri: keyVault.outputs.databasePasswordSecretUri
     databaseName: databaseName
-    siteUrl: 'https://${webAppName}.azurefd.net'
-    slotSiteUrl: slotEnabled ? 'https://${webAppName}-${slotName}.azurefd.net' : ''
+    siteUrl: 'https://${webAppName}.z01.azurefd.net'
+    slotSiteUrl: slotEnabled ? 'https://${webAppName}-${slotName}.z01.azurefd.net' : ''
   }
 }
 

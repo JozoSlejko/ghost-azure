@@ -7,7 +7,7 @@ WGET_EXIT_CODE=1
 set +eu
 wget -P ./tmp ${WebAppLink} &>/dev/null && WGET_EXIT_CODE=$? || WGET_EXIT_CODE=$?
 
-while [ WGET_EXIT_CODE ]
+while [ "$WGET_EXIT_CODE" != 0 ]
 do 
     rm ./tmp/* &>/dev/null
     sleep 5
@@ -28,7 +28,7 @@ else
 
     wget -P ./tmp ${SlotWebAppLink} &>/dev/null && WGET_EXIT_CODE=$? || WGET_EXIT_CODE=$?
 
-    while [ WGET_EXIT_CODE ]
+    while [ "$WGET_EXIT_CODE" != 0 ]
     do 
         rm ./tmp/* &>/dev/null
         sleep 5
