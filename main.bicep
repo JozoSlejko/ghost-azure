@@ -386,6 +386,7 @@ module frontDoor 'modules/fdStandard.bicep' = {
   params: {
     frontDoorName: frontDoorName
     webNames: webApp.outputs.webNames
+    wafMode: 'Prevention'
     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
   }
 }

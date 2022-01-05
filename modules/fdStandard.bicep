@@ -6,6 +6,25 @@ param webNames array
 @maxLength(64)
 param frontDoorName string
 
+@allowed([
+  'Detection'
+  'Prevention'
+])
+@description('The mode that the WAF should be deployed using. In \'Prevention\' mode, the WAF will block requests it detects as malicious. In \'Detection\' mode, the WAF will not block requests and will simply log the request.')
+param wafMode string = 'Prevention'
+
+@description('The list of managed rule sets to configure on the WAF.')
+param wafManagedRuleSets array = [
+  {
+    ruleSetType: 'Microsoft_DefaultRuleSet'
+    ruleSetVersion: '1.1'
+  }
+  {
+    ruleSetType: 'Microsoft_BotManagerRuleSet'
+    ruleSetVersion: '1.0'
+  }
+]
+
 @description('Log Analytics workspace id to use for diagnostics settings')
 param logAnalyticsWorkspaceId string
 
@@ -16,7 +35,7 @@ resource frontDoorProfile 'Microsoft.Cdn/profiles@2020-09-01' = {
   location: 'global'
   tags: tags
   sku: {
-    name: 'Standard_AzureFrontDoor'
+    name: 'Premium_AzureFrontDoor' // The Microsoft-managed WAF rule sets require the premium SKU of Front Door.
   }
   properties: {}
 }
@@ -136,6 +155,51 @@ resource afdEndpointRoute 'Microsoft.Cdn/profiles/afdEndpoints/routes@2020-09-01
   }
 
 }]
+
+resource wafPolicy 'Microsoft.Network/FrontDoorWebApplicationFirewallPolicies@2020-11-01' = {
+  name: 'WafPolicy'
+  location: 'global'
+  sku: {
+    name: 'Premium_AzureFrontDoor'
+  }
+  properties: {
+    policySettings: {
+      enabledState: 'Enabled'
+      mode: wafMode
+    }
+    managedRules: {
+      managedRuleSets: wafManagedRuleSets
+    }
+  }
+}
+
+resource securityPolicy 'Microsoft.Cdn/profiles/securityPolicies@2020-09-01' = {
+  parent: frontDoorProfile
+  name: 'SecurityPolicy'
+  properties: {
+    parameters: {
+      type: 'WebApplicationFirewall'
+      wafPolicy: {
+        id: wafPolicy.id
+      }
+      associations: [
+        {
+          domains: [
+            {
+              id: afdEndpoint[0].id
+            }
+            {
+              id: afdEndpoint[1].id
+            }
+          ]
+          patternsToMatch: [
+            '/*'
+          ]
+        }
+      ]
+    }
+  }
+}
 
 resource frontDoorDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: 'FrontDoorDiagnostics'
