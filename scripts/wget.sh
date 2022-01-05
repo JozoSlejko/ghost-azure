@@ -5,41 +5,35 @@ i=0
 WGET_EXIT_CODE=0
 
 set +eu
-wget -P ./tmp ${WebAppLink} || WGET_EXIT_CODE=$?
-set -eu
+wget -P ./tmp ${WebAppLink} &>/dev/null || WGET_EXIT_CODE=$?
 
 while [ WGET_EXIT_CODE ]
 do 
-    rm ./tmp/*
+    rm ./tmp/* &>/dev/null
     sleep 30
     ((i++))
     if [[ "$i" == 9 ]]
     then
         break
     fi
-    set +eu
-    wget -P ./tmp ${WebAppLink} || WGET_EXIT_CODE=$?
-    set -eu
+    wget -P ./tmp ${WebAppLink} &>/dev/null || WGET_EXIT_CODE=$?
 done
 
-rm ./tmp/*
+rm ./tmp/* &>/dev/null
 i=0
-set +eu
-wget -P ./tmp ${SlotWebAppLink} || WGET_EXIT_CODE=$?
-set -eu
+
+wget -P ./tmp ${SlotWebAppLink} &>/dev/null || WGET_EXIT_CODE=$?
 
 while [ WGET_EXIT_CODE ]
 do 
-    rm ./tmp/*
+    rm ./tmp/* &>/dev/null
     sleep 30
     ((i++))
     if [[ "$i" == 9 ]]
     then
         break
     fi
-    set +eu
-    wget -P ./tmp ${SlotWebAppLink} || WGET_EXIT_CODE=$?
-    set -eu
+    wget -P ./tmp ${SlotWebAppLink} &>/dev/null || WGET_EXIT_CODE=$?
 done
 
 sleep ${SleepTime}
