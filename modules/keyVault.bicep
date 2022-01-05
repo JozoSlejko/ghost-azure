@@ -1,6 +1,6 @@
-targetScope = 'resourceGroup'
-
 param tags object = {}
+
+param enableSoftDelete bool
 
 @description('Key Vault name')
 @minLength(3)
@@ -55,6 +55,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2021-04-01-preview' = {
       name: 'standard'
       family: 'A'
     }
+    enableSoftDelete: enableSoftDelete
   }
 }
 

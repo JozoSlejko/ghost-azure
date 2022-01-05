@@ -119,6 +119,9 @@ var environmentConfigurationMap = {
         name: 'PerGB2018'
       }
     }
+    keyVault: {
+      enableSoftDelete: true
+    }
   }
   Development: {
     environmentCode: 'dev'
@@ -144,6 +147,9 @@ var environmentConfigurationMap = {
       sku: {
         name: 'PerGB2018'
       }
+    }
+    keyVault: {
+      enableSoftDelete: false
     }
   }
 }
@@ -230,6 +236,7 @@ module keyVault './modules/keyVault.bicep' = {
   params: {
     tags: tags
     keyVaultName: keyVaultName
+    enableSoftDelete: environmentConfigurationMap[environmentName].keyVault.enableSoftDelete
     databaseSecretName: 'databasePassword'
     databaseSecretValue: databasePassword // from Github Secrets
     faAdAppSecretName: 'functionAdAppPassword'
