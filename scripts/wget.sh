@@ -16,13 +16,13 @@ do
     then
         break
     fi
-    wget -P ./tmp ${WebAppLink} &>/dev/null && WGET_EXIT_CODE=$?  || WGET_EXIT_CODE=$?
+    wget -P ./tmp ${WebAppLink} &>/dev/null && WGET_EXIT_CODE=$? || WGET_EXIT_CODE=$?
 done
 
 rm ./tmp/* &>/dev/null
 i=0
 
-wget -P ./tmp ${SlotWebAppLink} &>/dev/null && WGET_EXIT_CODE=$?  || WGET_EXIT_CODE=$?
+wget -P ./tmp ${SlotWebAppLink} &>/dev/null && WGET_EXIT_CODE=$? || WGET_EXIT_CODE=$?
 
 while [ WGET_EXIT_CODE ]
 do 
