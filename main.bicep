@@ -444,18 +444,18 @@ module frontDoor 'modules/fdStandard.bicep' = {
   }
 }
 
-module webAppIpRestriction 'modules/webAppIpRestriction.bicep' = {
-  name: 'webAppIpRestrictionDeploy'
-  dependsOn: [
-    frontDoor
-  ]
-  params: {
-    frontDoorName: frontDoorName
-    slotEnabled: slotEnabled
-    slotName: slotName
-    webAppName: webAppName
-  }
-}
+// module webAppIpRestriction 'modules/webAppIpRestriction.bicep' = {
+//   name: 'webAppIpRestrictionDeploy'
+//   dependsOn: [
+//     frontDoor
+//   ]
+//   params: {
+//     frontDoorName: frontDoorName
+//     slotEnabled: slotEnabled
+//     slotName: slotName
+//     webAppName: webAppName
+//   }
+// }
 
 // Function app section start
 ///////////////////////////////////////////////////////
@@ -485,18 +485,6 @@ module faStorageAccount 'modules/faStorageAccount.bicep' = {
     location: location
   }
 }
-
-// Sleep
-// module sleep 'modules/sleep.bicep' = {
-//   name: 'faStorageAccountSleepDeploy'
-//   scope: resourceGroup(faResourceGroup)
-//   dependsOn: [
-//     faStorageAccount
-//   ]
-//   params: {
-//     time: '240'
-//   }
-// }
 
 module checkFaStorage 'modules/checkStorage.bicep' = {
   name: 'faCheckStorage'

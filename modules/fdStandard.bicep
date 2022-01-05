@@ -35,12 +35,12 @@ resource afdOriginGroup 'Microsoft.Cdn/profiles/originGroups@2020-09-01' = [for 
   name: endpoint
   parent: frontDoorProfile
   properties: {
-    healthProbeSettings: {
-      probePath: '/'
-      probeRequestType: 'HEAD'
-      probeProtocol: 'Https'
-      probeIntervalInSeconds: 100
-    }
+    // healthProbeSettings: {
+    //   probePath: '/'
+    //   probeRequestType: 'HEAD'
+    //   probeProtocol: 'Https'
+    //   probeIntervalInSeconds: 100
+    // }
     loadBalancingSettings: {
       sampleSize: 4
       successfulSamplesRequired: 3
