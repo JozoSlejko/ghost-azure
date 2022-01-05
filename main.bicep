@@ -350,17 +350,6 @@ module wgetWebApp2 'modules/wget.bicep' = {
   }
 }
 
-// module webAppSleep2 'modules/sleep.bicep' = {
-//   name: 'webAppSleep2'
-//   dependsOn: [
-//     wgetWebApp2
-//     // wgetSlotWebApp2
-//   ]
-//   params: {
-//     time: '300'
-//   }
-// }
-
 module mySQLServer 'modules/mySQLServer.bicep' = {
   name: 'mySQLServerDeploy'
   params: {
