@@ -19,7 +19,9 @@ Bicep template deploys and configures the following Azure resources to a single 
   * Storing secrets such as database passwords and Azure AD principal secrets
 * Log Analytics workspace and Application Insights for monitoring
 * Azure Database for MySQL servers for each Web App slot
+  * Single Server option since the Flexible Server doesn't support geo backup or replication at this time
 * Azure Storage Account and File Share for persisting Ghost content
+  * Geo redundant storage for production
 * Azure Front Door Standard
   * Endpoints for each slot with caching enabled
   * WAF policy for securing the traffic to the Web app
