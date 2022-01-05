@@ -404,6 +404,19 @@ module webAppIpRestriction 'modules/webAppIpRestriction.bicep' = {
   }
 }
 
+module wgetWebApp3 'modules/wget.bicep' = {
+  name: 'wgetWebApp3'
+  dependsOn: [
+    webAppIpRestriction
+  ]
+  params: {
+    webAppName: webAppName
+    webAppLink: 'https://${webAppName}.z01.azurefd.net'
+    slotWebAppLink: slotEnabled ? 'https://${webAppName}-${slotName}.z01.azurefd.net' : ''
+    time: '5'
+  }
+}
+
 // Function app section start
 ///////////////////////////////////////////////////////
 
