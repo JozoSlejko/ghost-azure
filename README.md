@@ -12,15 +12,19 @@ This is an Azure Web app deployed as a container. It uses [the official Ghost Do
 
 Bicep template deploys and configures the following Azure resources to a single region:
 
-* Azure App Hosting plan with Azure Web app for running the Ghost image
-* Azure App Service deployment slot if required
-* Azure Key Vault for storing secrets such as database passwords
+* Azure App Hosting plan with Azure Web app for running the Ghost docker image
+  * Additional deployment slot if required
+  * IP restriction - from Azure Front Door allowed only
+* Azure Key Vault
+  * Storing secrets such as database passwords and Azure AD principal secrets
 * Log Analytics workspace and Application Insights for monitoring
-* Azure Database for MySQL server
+* Azure Database for MySQL servers for each Web App slot
 * Azure Storage Account and File Share for persisting Ghost content
-* Azure Front Door endpoint with a WAF policy for securing the traffic to the Web app
+* Azure Front Door Standard
+  * Endpoints for each slot with caching enabled
+  * WAF policy for securing the traffic to the Web app
 * Azure Function App hosting the serverless function for Ghost posts deletion
-* Azure AD Application for Function App authentication
+  * Azure AD authentication enabled
 
 ## Solution Requirements
 
@@ -65,15 +69,30 @@ Due to the nature of private Github repositories, workflow environment separatio
 
 Following are the prerequisites that need to be met for the Github workflow:
 
-* Resource groups - Resource groups for solution environments and function apps
+* Existing Azure Container Registry
+  * Ghost docker image imported
 
-* Service principals - Azure AD service principal, one for each environment
+* Resource groups
+  * For solution environment - parameter input
+  * For function app - *rg-applicationNamePrefix-fa-environmentCode*
+
+* Service principals for Github workflow deployment
+  * Azure AD service principal, one for each environment
 
 * Access
   * Service principal *Contributor* RBAC access to the respective environment resource group and function app resource groups - deploy solution via Github workflow
   * Service principal *Cloud application administrator* Azure AD role - deploy Azure AD application for Function App authentication
 
-* Github Action secrets - secrets in the repository for authentication and authorizing Github workflow with Azure resource groups
+* Github Action secrets
+  * Secrets in the repository for authentication and authorizing Github workflow with Azure resource groups
+
+| Name | Description |
+|---|---|
+| AZURE_CREDENTIALS_DEV | Main credentials for worflow deployment to development resource groups |
+| AZURE_CREDENTIALS_PRODUCTION | Main credentials for worflow deployment to production resource groups |
+| DATABASEPASSWORD | MySQL database password |
+| DEV_APP_PASSWORD | Azure AD Application Secret - used by the Function App External Authentication |
+| DEV_SP_PASSWORD | Deployment Service principal secret - used by AAD App Deployment Script |
 
 ## Function App
 
