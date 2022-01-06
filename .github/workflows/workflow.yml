@@ -122,7 +122,9 @@ jobs:
                     appPassword=${{ secrets.DEV_APP_PASSWORD }}
     - name: 'Sleep for 2 mins'
       shell: bash
-      run: sleep 120s
+      run: |
+        echo ${{ steps.deploy.outputs.faName }}
+        sleep 120s
 
 # Deploy the dev/test function code
   deploy-function-dev:
@@ -141,6 +143,7 @@ jobs:
     - name: 'Resolve Project Dependencies Using Npm'
       shell: bash
       run: |
+        echo ${{ needs.deploy-dev.outputs.faName }}
         pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
         npm install
         npm run build --if-present
