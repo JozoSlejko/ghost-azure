@@ -123,7 +123,11 @@ jobs:
     - name: 'Sleep for 2 mins'
       shell: bash
       run: |
+        echo "something"
         echo ${{ steps.deploy.outputs.faName }}
+        echo ${{ steps.deploy.outputs.endpointHostName }}
+        echo ${{ steps.deploy.outputs.slotWebAppHostName }}
+        echo ${{ steps.deploy.outputs.faHostName }}
         sleep 120s
 
 # Deploy the dev/test function code
