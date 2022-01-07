@@ -317,6 +317,7 @@ module allWebAppSettings 'modules/webAppSettings.bicep' = {
   name: 'allWebAppSettingsDeploy'
   dependsOn: [
     // wgetWebApp
+    webApp
   ]
   params: {
     environment: environmentName
