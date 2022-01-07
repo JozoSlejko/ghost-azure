@@ -10,7 +10,7 @@ env:
   AZURE_DEV_RESOURCEGROUP_NAME: rg-ghost-dev-01
   AZURE_PROD_RESOURCEGROUP_NAME: rg-ghost-prd-01
   APP_NAME_PREFIX: ghost
-  SLOT_ENABLED: 'Yes'
+  SLOT_ENABLED: 'No'
   GHOST_CONTAINER: 'ghost:4.32.0-alpine'
   AZURE_FUNCTIONAPP_PACKAGE_PATH: 'function'
   AAD_TENANT_ID: '82850fa2-55e9-4b75-bd6b-98c6cc219872'
@@ -120,15 +120,9 @@ jobs:
                     spId=${{ env.DEV_SP_ID }}
                     spPassword=${{ secrets.DEV_SP_PASSWORD }}
                     appPassword=${{ secrets.DEV_APP_PASSWORD }}
-    - name: 'Sleep for 2 mins'
+    - name: 'Sleep'
       shell: bash
-      run: |
-        echo "something"
-        echo ${{ steps.deploy.outputs.faName }}
-        echo ${{ steps.deploy.outputs.endpointHostName }}
-        echo ${{ steps.deploy.outputs.slotWebAppHostName }}
-        echo ${{ steps.deploy.outputs.faHostName }}
-        sleep 120s
+      run: sleep 30s
 
 # Deploy the dev/test function code
   deploy-function-dev:
@@ -147,7 +141,6 @@ jobs:
     - name: 'Resolve Project Dependencies Using Npm'
       shell: bash
       run: |
-        echo ${{ needs.deploy-dev.outputs.faName }}
         pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
         npm install
         npm run build --if-present
