@@ -79,7 +79,6 @@ var ghostContentFileShareName = 'contentfiles'
 var ghostContentFilesMountPath = '/var/lib/ghost/content_files'
 
 var frontDoorName = '${applicationNamePrefix}-fd-${environmentCode}-${uniqueString(resourceGroup().id)}'
-// var wafPolicyName = '${applicationNamePrefix}waf${uniqueString(resourceGroup().id)}'
 
 var tags = {
   'owner': 'jozoslejko'
@@ -303,21 +302,21 @@ module webApp './modules/webApp.bicep' = {
   }
 }
 
-// module wgetWebApp 'modules/wget.bicep' = {
-//   name: 'wgetWebApp'
-//   params: {
-//     webAppName: webAppName
-//     webAppLink: 'https://${webApp.outputs.hostNames[0]}'
-//     slotWebAppLink: slotEnabled ? 'https://${webApp.outputs.hostNames[1]}' : ''
-//     time: '30'
-//   }
-// }
+module wgetWebApp 'modules/wget.bicep' = {
+  name: 'wgetWebApp'
+  params: {
+    webAppName: webAppName
+    webAppLink: 'https://${webApp.outputs.hostNames[0]}'
+    slotWebAppLink: slotEnabled ? 'https://${webApp.outputs.hostNames[1]}' : ''
+    time: '30'
+  }
+}
 
 module allWebAppSettings 'modules/webAppSettings.bicep' = {
   name: 'allWebAppSettingsDeploy'
   dependsOn: [
-    // wgetWebApp
-    webApp
+    wgetWebApp
+    // webApp
   ]
   params: {
     environment: environmentName
@@ -338,18 +337,18 @@ module allWebAppSettings 'modules/webAppSettings.bicep' = {
   }
 }
 
-// module wgetWebApp2 'modules/wget.bicep' = {
-//   name: 'wgetWebApp2'
-//   dependsOn: [
-//     allWebAppSettings
-//   ]
-//   params: {
-//     webAppName: webAppName
-//     webAppLink: 'https://${webApp.outputs.hostNames[0]}'
-//     slotWebAppLink: slotEnabled ? 'https://${webApp.outputs.hostNames[1]}' : ''
-//     time: '5'
-//   }
-// }
+module wgetWebApp2 'modules/wget.bicep' = {
+  name: 'wgetWebApp2'
+  dependsOn: [
+    allWebAppSettings
+  ]
+  params: {
+    webAppName: webAppName
+    webAppLink: 'https://${webApp.outputs.hostNames[0]}'
+    slotWebAppLink: slotEnabled ? 'https://${webApp.outputs.hostNames[1]}' : ''
+    time: '5'
+  }
+}
 
 module mySQLServer 'modules/mySQLServer.bicep' = {
   name: 'mySQLServerDeploy'
@@ -382,8 +381,8 @@ module slotMySQLServer 'modules/mySQLServer.bicep' = if (slotEnabled) {
 module frontDoor 'modules/fdStandard.bicep' = {
   name: 'frontDoorDeploy'
   dependsOn: [
-    // wgetWebApp2
-    allWebAppSettings
+    wgetWebApp2
+    // allWebAppSettings
   ]
   params: {
     frontDoorName: frontDoorName
@@ -406,18 +405,18 @@ module webAppIpRestriction 'modules/webAppIpRestriction.bicep' = {
   }
 }
 
-// module wgetWebApp3 'modules/wget.bicep' = {
-//   name: 'wgetWebApp3'
-//   dependsOn: [
-//     webAppIpRestriction
-//   ]
-//   params: {
-//     webAppName: webAppName
-//     webAppLink: 'https://${webAppName}.z01.azurefd.net'
-//     slotWebAppLink: slotEnabled ? 'https://${webAppName}-${slotName}.z01.azurefd.net' : ''
-//     time: '5'
-//   }
-// }
+module wgetWebApp3 'modules/wget.bicep' = {
+  name: 'wgetWebApp3'
+  dependsOn: [
+    webAppIpRestriction
+  ]
+  params: {
+    webAppName: webAppName
+    webAppLink: 'https://${webAppName}.z01.azurefd.net'
+    slotWebAppLink: slotEnabled ? 'https://${webAppName}-${slotName}.z01.azurefd.net' : ''
+    time: '5'
+  }
+}
 
 // Function app section start
 ///////////////////////////////////////////////////////
