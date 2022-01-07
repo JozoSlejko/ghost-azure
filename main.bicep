@@ -303,20 +303,20 @@ module webApp './modules/webApp.bicep' = {
   }
 }
 
-module wgetWebApp 'modules/wget.bicep' = {
-  name: 'wgetWebApp'
-  params: {
-    webAppName: webAppName
-    webAppLink: 'https://${webApp.outputs.hostNames[0]}'
-    slotWebAppLink: slotEnabled ? 'https://${webApp.outputs.hostNames[1]}' : ''
-    time: '30'
-  }
-}
+// module wgetWebApp 'modules/wget.bicep' = {
+//   name: 'wgetWebApp'
+//   params: {
+//     webAppName: webAppName
+//     webAppLink: 'https://${webApp.outputs.hostNames[0]}'
+//     slotWebAppLink: slotEnabled ? 'https://${webApp.outputs.hostNames[1]}' : ''
+//     time: '30'
+//   }
+// }
 
 module allWebAppSettings 'modules/webAppSettings.bicep' = {
   name: 'allWebAppSettingsDeploy'
   dependsOn: [
-    wgetWebApp
+    // wgetWebApp
   ]
   params: {
     environment: environmentName
@@ -337,18 +337,18 @@ module allWebAppSettings 'modules/webAppSettings.bicep' = {
   }
 }
 
-module wgetWebApp2 'modules/wget.bicep' = {
-  name: 'wgetWebApp2'
-  dependsOn: [
-    allWebAppSettings
-  ]
-  params: {
-    webAppName: webAppName
-    webAppLink: 'https://${webApp.outputs.hostNames[0]}'
-    slotWebAppLink: slotEnabled ? 'https://${webApp.outputs.hostNames[1]}' : ''
-    time: '5'
-  }
-}
+// module wgetWebApp2 'modules/wget.bicep' = {
+//   name: 'wgetWebApp2'
+//   dependsOn: [
+//     allWebAppSettings
+//   ]
+//   params: {
+//     webAppName: webAppName
+//     webAppLink: 'https://${webApp.outputs.hostNames[0]}'
+//     slotWebAppLink: slotEnabled ? 'https://${webApp.outputs.hostNames[1]}' : ''
+//     time: '5'
+//   }
+// }
 
 module mySQLServer 'modules/mySQLServer.bicep' = {
   name: 'mySQLServerDeploy'
@@ -381,7 +381,8 @@ module slotMySQLServer 'modules/mySQLServer.bicep' = if (slotEnabled) {
 module frontDoor 'modules/fdStandard.bicep' = {
   name: 'frontDoorDeploy'
   dependsOn: [
-    wgetWebApp2
+    // wgetWebApp2
+    allWebAppSettings
   ]
   params: {
     frontDoorName: frontDoorName
@@ -404,18 +405,18 @@ module webAppIpRestriction 'modules/webAppIpRestriction.bicep' = {
   }
 }
 
-module wgetWebApp3 'modules/wget.bicep' = {
-  name: 'wgetWebApp3'
-  dependsOn: [
-    webAppIpRestriction
-  ]
-  params: {
-    webAppName: webAppName
-    webAppLink: 'https://${webAppName}.z01.azurefd.net'
-    slotWebAppLink: slotEnabled ? 'https://${webAppName}-${slotName}.z01.azurefd.net' : ''
-    time: '5'
-  }
-}
+// module wgetWebApp3 'modules/wget.bicep' = {
+//   name: 'wgetWebApp3'
+//   dependsOn: [
+//     webAppIpRestriction
+//   ]
+//   params: {
+//     webAppName: webAppName
+//     webAppLink: 'https://${webAppName}.z01.azurefd.net'
+//     slotWebAppLink: slotEnabled ? 'https://${webAppName}-${slotName}.z01.azurefd.net' : ''
+//     time: '5'
+//   }
+// }
 
 // Function app section start
 ///////////////////////////////////////////////////////
@@ -506,8 +507,8 @@ module functionAppSettings './modules/functionAppSettings.bicep' = {
 
 // Outputs
 
-output endpointHostName string = frontDoor.outputs.frontDoorEndpointHostNames[0].endpointHostName
-output slotWebAppHostName string = slotEnabled ? frontDoor.outputs.frontDoorEndpointHostNames[1].endpointHostName : ''
+// output endpointHostName string = frontDoor.outputs.frontDoorEndpointHostNames[0].endpointHostName
+// output slotWebAppHostName string = slotEnabled ? frontDoor.outputs.frontDoorEndpointHostNames[1].endpointHostName : ''
 
 output faName string = function.outputs.name
 output faHostName string = function.outputs.hostName
