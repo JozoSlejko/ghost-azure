@@ -507,8 +507,8 @@ module functionAppSettings './modules/functionAppSettings.bicep' = {
 
 // Outputs
 
-// output endpointHostName string = frontDoor.outputs.frontDoorEndpointHostNames[0].endpointHostName
-// output slotWebAppHostName string = slotEnabled ? frontDoor.outputs.frontDoorEndpointHostNames[1].endpointHostName : ''
+output endpointHostName string = frontDoor.outputs.frontDoorEndpointHostNames[0].endpointHostName
+output slotWebAppHostName string = slotEnabled ? frontDoor.outputs.frontDoorEndpointHostNames[1].endpointHostName : ''
 
 output faName string = function.outputs.name
 output faHostName string = function.outputs.hostName
