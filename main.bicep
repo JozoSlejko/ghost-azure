@@ -79,7 +79,6 @@ var ghostContentFileShareName = 'contentfiles'
 var ghostContentFilesMountPath = '/var/lib/ghost/content_files'
 
 var frontDoorName = '${applicationNamePrefix}-fd-${environmentCode}-${uniqueString(resourceGroup().id)}'
-// var wafPolicyName = '${applicationNamePrefix}waf${uniqueString(resourceGroup().id)}'
 
 var tags = {
   'owner': 'jozoslejko'
@@ -386,6 +385,7 @@ module frontDoor 'modules/fdStandard.bicep' = {
   params: {
     frontDoorName: frontDoorName
     webNames: webApp.outputs.webNames
+    wafMode: 'Prevention'
     logAnalyticsWorkspaceId: logAnalyticsWorkspace.outputs.id
   }
 }
@@ -402,6 +402,19 @@ module webAppIpRestriction 'modules/webAppIpRestriction.bicep' = {
     webAppName: webAppName
   }
 }
+
+// module wgetWebApp3 'modules/wget.bicep' = {
+//   name: 'wgetWebApp3'
+//   dependsOn: [
+//     webAppIpRestriction
+//   ]
+//   params: {
+//     webAppName: webAppName
+//     webAppLink: 'https://${webAppName}.z01.azurefd.net'
+//     slotWebAppLink: slotEnabled ? 'https://${webAppName}-${slotName}.z01.azurefd.net' : ''
+//     time: '5'
+//   }
+// }
 
 // Function app section start
 ///////////////////////////////////////////////////////
