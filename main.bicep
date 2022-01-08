@@ -316,7 +316,6 @@ module allWebAppSettings 'modules/webAppSettings.bicep' = {
   name: 'allWebAppSettingsDeploy'
   dependsOn: [
     wgetWebApp
-    // webApp
   ]
   params: {
     environment: environmentName
@@ -382,7 +381,6 @@ module frontDoor 'modules/fdStandard.bicep' = {
   name: 'frontDoorDeploy'
   dependsOn: [
     wgetWebApp2
-    // allWebAppSettings
   ]
   params: {
     frontDoorName: frontDoorName
